@@ -1,0 +1,108 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String?        @unique
+  name          String?
+  phone         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  conversations Conversation[]
+  documents     Document[]
+  notices       Notice[]
+  feedback      Feedback[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title       String    @default("Legal Consultation")
+  category    String?   // e.g. "Tenancy", "Employment", "Consumer", "Financial"
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+  notices     Notice[]
+
+  @@index([userId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       // "user", "assistant", "system"
+  content        String       @db.Text
+  structuredData String?      @db.Text // JSON string of structured guidance
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+model Document {
+  id             String    @id @default(cuid())
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  fileName       String
+  fileType       String
+  fileSize       Int
+  extractedText  String?   @db.Text
+  summary        String?   @db.Text
+  keyClauses     String?   @db.Text // JSON string of detected clauses
+  risksDetected  String?   @db.Text // JSON string of red-flagged issues
+  parties        String?   @db.Text // JSON string of parties
+  status         String    @default("analyzed")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("documents")
+}
+
+model Notice {
+  id               String        @id @default(cuid())
+  userId           String?
+  user             User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  conversationId   String?
+  conversation     Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  noticeType       String        // e.g., "Security Deposit Refund", "Unpaid Salary", "Defective Goods"
+  senderDetails    String        @db.Text // JSON string (name, address, email, phone)
+  recipientDetails String        @db.Text // JSON string (name, designation, address, company)
+  facts            String        @db.Text
+  legalBasis       String        @db.Text
+  demand           String        @db.Text
+  deadlineDays     Int           @default(15)
+  fullDraft        String        @db.Text
+  status           String        @default("drafted")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([conversationId])
+  @@map("notices")
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rating    Int      // 1 to 5
+  category  String?  // "accuracy", "clarity", "notice_quality", "general"
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("feedback")
+}

@@ -1,0 +1,749 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Send,
+  Mic,
+  MicOff,
+  Sparkles,
+  RotateCcw,
+  Paperclip,
+  FileText,
+  AlertCircle,
+  HelpCircle,
+  ArrowRight,
+  ShieldAlert,
+  Gavel,
+  BookMarked,
+  CheckCircle2,
+  FolderLock,
+  Scale,
+  Copy,
+  Check,
+} from "lucide-react";
+import { StructuredLegalGuidance, NoticePrefill } from "@/lib/ai/demo-scenarios";
+import { LegalDisclaimer } from "../ui/LegalDisclaimer";
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  intent?: "legal" | "non-legal" | "ambiguous";
+  isLegalIssue?: boolean;
+  nonLegalResponse?: string;
+  clarificationQuestion?: string;
+  guidance?: StructuredLegalGuidance;
+  noticePrefill?: NoticePrefill;
+  isDemoMode?: boolean;
+  scenarioId?: string;
+  timestamp: string;
+}
+
+const EXAMPLE_QUERIES = [
+  {
+    label: "Tenant Security Deposit",
+    text: "My landlord is refusing to return my security deposit even though I moved out and there is no major damage to the property.",
+  },
+  {
+    label: "Unlawful Termination & Notice Pay",
+    text: "My company terminated me without giving me proper notice and has not paid my final salary.",
+  },
+  {
+    label: "Defective Product & Warranty Denial",
+    text: "I purchased an expensive laptop online which was defective on arrival, and the seller/company is refusing to refund or replace it.",
+  },
+  {
+    label: "3 Months Unpaid Salary",
+    text: "My employer has delayed my salary for the past 3 months and is refusing to clear my dues.",
+  },
+];
+
+export const ChatInterface: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q");
+  const queryTriggeredRef = useRef(false);
+
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Web Speech API for voice recognition if available
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        setSpeechSupported(true);
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-IN"; // Indian English
+
+        recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+          setIsListening(false);
+        };
+
+        recognition.onerror = () => {
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  // Handle URL query param from Landing page
+  useEffect(() => {
+    if (initialQuery && !queryTriggeredRef.current && messages.length === 0) {
+      queryTriggeredRef.current = true;
+      handleSendMessage(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const toggleListening = () => {
+    if (!speechSupported || !recognitionRef.current) {
+      alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (err) {
+        console.error("Speech recognition start failed:", err);
+      }
+    }
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const text = (textToSend || input).trim();
+    if (!text || loading) return;
+
+    const userMessageId = "user-" + Date.now();
+    const userMsg: ChatMessage = {
+      id: userMessageId,
+      role: "user",
+      content: text,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          history: messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to process consultation");
+      }
+
+      const data = await res.json();
+
+      // Non-legal or ambiguous intent path
+      if (!data.isLegalIssue) {
+        const assistantMsg: ChatMessage = {
+          id: "ai-" + Date.now(),
+          role: "assistant",
+          content:
+            data.intent === "ambiguous"
+              ? data.clarificationQuestion ||
+                "Could you please clarify who is involved and what specific action occurred?"
+              : data.nonLegalResponse ||
+                "This doesn't appear to be a legal issue. I can help with legal questions involving tenancy, employment, consumers, contracts, online fraud, and similar matters.",
+          intent: data.intent || "non-legal",
+          isLegalIssue: false,
+          nonLegalResponse: data.nonLegalResponse,
+          clarificationQuestion: data.clarificationQuestion,
+          isDemoMode: data.isDemoMode,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+        return;
+      }
+
+      const assistantMsg: ChatMessage = {
+        id: "ai-" + Date.now(),
+        role: "assistant",
+        content: data.guidance?.understanding || "",
+        intent: "legal",
+        isLegalIssue: true,
+        guidance: data.guidance,
+        noticePrefill: data.suggestedNoticePrefill,
+        isDemoMode: data.isDemoMode,
+        scenarioId: data.scenarioId,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err: any) {
+      console.error(err);
+      const isTimeout = err.name === "AbortError";
+      const errorMsg: ChatMessage = {
+        id: "err-" + Date.now(),
+        role: "assistant",
+        content: isTimeout 
+          ? "The AI engine took too long to respond. Please check if the Python backend is running on port 8000 and try again."
+          : `I encountered an issue processing your query: ${err.message || "Unknown error"}. Please check your connection or backend logs.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setInput("");
+  };
+
+  const copyAdvice = (message: ChatMessage) => {
+    if (!message.guidance) return;
+    const g = message.guidance;
+    const text = `NYAY MITRA AI - LEGAL CLARITY REPORT
+Problem: ${g.understanding}
+Legal Domain: ${g.legalArea}
+
+Rights:
+${(g.possibleRights || []).map((r, i) => `${i + 1}. ${r}`).join("\n")}
+
+Laws & Statutes:
+${(g.relevantLaws || []).map((l) => `- ${l.provision} of ${l.act}: ${l.details}`).join("\n")}
+
+Next Steps:
+${(g.nextSteps || []).map((s, i) => `${i + 1}. ${s}`).join("\n")}
+
+Disclaimer: General information only. Not substitute for a qualified lawyer.`;
+
+    navigator.clipboard.writeText(text);
+    setCopiedId(message.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const bridgeToNotice = (noticePrefill?: NoticePrefill) => {
+    if (noticePrefill) {
+      // Store in sessionStorage so /notices can automatically load it
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("nyay_notice_prefill", JSON.stringify(noticePrefill));
+      }
+    }
+    router.push("/notices");
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 w-full flex flex-col flex-1">
+      {/* Top Header & Clear Button */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+            <Scale className="w-6 h-6 text-gold-400" />
+            <span>AI Legal Consultation</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400">
+            Explain your legal problem in plain language. Nyay Mitra identifies rights, laws, and next steps.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {messages.length > 0 && (
+            <button
+              onClick={clearChat}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 bg-slate-900 border border-slate-800 hover:border-rose-500/30 transition-all"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Clear Consultation</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Global Non-intrusive Disclaimer */}
+      <div className="my-3">
+        <LegalDisclaimer compact />
+      </div>
+
+      {/* Chat Messages Container */}
+      <div className="flex-1 overflow-y-auto min-h-[380px] max-h-[600px] py-4 space-y-6">
+        {messages.length === 0 ? (
+          /* Empty State / Welcome Guide */
+          <div className="py-6 sm:py-10 text-center space-y-6">
+            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-gold-500/30 flex items-center justify-center mx-auto text-gold-400 shadow-gold-glow">
+              <Gavel className="w-8 h-8" />
+            </div>
+
+            <div className="max-w-lg mx-auto space-y-2">
+              <h2 className="text-lg sm:text-xl font-bold text-white">
+                How Can Nyay Mitra Help You Today?
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                Describe any dispute with your landlord, employer, online seller, bank, or consumer provider. Speak or type in simple words.
+              </p>
+            </div>
+
+            {/* Suggested Hackathon Scenarios */}
+            <div className="max-w-2xl mx-auto text-left space-y-3 pt-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                <span>Try an example legal issue (Judge Demo Scenarios):</span>
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {EXAMPLE_QUERIES.map((q, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendMessage(q.text)}
+                    className="p-3 text-left rounded-xl bg-slate-900/90 border border-slate-800 hover:border-gold-500/40 hover:bg-slate-800/80 transition-all group shadow-sm"
+                  >
+                    <span className="text-xs font-semibold text-gold-400 group-hover:text-gold-300 block mb-1">
+                      {q.label}
+                    </span>
+                    <span className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                      &ldquo;{q.text}&rdquo;
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Message Flow */
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
+            >
+              {/* User Bubble */}
+              {msg.role === "user" ? (
+                <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-none p-4 bg-navy-700/80 border border-navy-500/30 text-white shadow-subtle">
+                  <div className="flex items-center justify-between gap-4 mb-1">
+                    <span className="text-[11px] font-semibold text-gold-300">You (Citizen)</span>
+                    <span className="text-[10px] text-slate-400">{msg.timestamp}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              ) : (
+                /* Assistant Structured Legal Guidance */
+                <div className="w-full max-w-3xl rounded-2xl rounded-tl-none p-5 sm:p-6 bg-slate-900/90 border border-slate-800 text-slate-200 shadow-elevated space-y-6">
+                  {/* Header with Badges */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                        msg.intent === "ambiguous"
+                          ? "bg-amber-500/20 border border-amber-500/40 text-amber-400"
+                          : msg.isLegalIssue === false
+                          ? "bg-blue-500/20 border border-blue-500/40 text-blue-400"
+                          : "bg-gold-500/20 border border-gold-500/40 text-gold-400"
+                      }`}>
+                        {msg.intent === "ambiguous" ? (
+                          <HelpCircle className="w-4 h-4" />
+                        ) : msg.isLegalIssue === false ? (
+                          <Sparkles className="w-4 h-4" />
+                        ) : (
+                          <Scale className="w-4 h-4" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-white">
+                          {msg.intent === "ambiguous"
+                            ? "Clarification Needed"
+                            : msg.isLegalIssue === false
+                            ? "Nyay Mitra Assistant"
+                            : "Nyay Mitra Legal Analysis"}
+                        </span>
+                        {msg.isDemoMode && msg.isLegalIssue !== false && (
+                          <span className="ml-2 px-2 py-0.5 text-[10px] font-medium rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                            Demo Engine
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {msg.guidance && (
+                        <button
+                          onClick={() => copyAdvice(msg)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+                          title="Copy structured guidance"
+                        >
+                          {copiedId === msg.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <span className="text-emerald-400">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                      <span className="text-[10px] text-slate-500">{msg.timestamp}</span>
+                    </div>
+                  </div>
+
+                  {msg.isLegalIssue === false ? (
+                    msg.intent === "ambiguous" ? (
+                      /* Ambiguous query: Short clarification question */
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-950/30 border border-amber-500/40">
+                          <HelpCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                          <div className="space-y-1.5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                              Context Required Before Legal Analysis
+                            </span>
+                            <p className="text-sm text-slate-100 leading-relaxed font-medium">
+                              {msg.clarificationQuestion || msg.content}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400 pl-1">
+                          Please reply with these details so Nyay Mitra AI can identify the specific Indian statute (e.g. Tenancy, Labour, or Consumer Protection) and practical next steps.
+                        </p>
+                      </div>
+                    ) : (
+                      /* Clear non-legal message: natural friendly response */
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/60 border border-slate-700">
+                          <Sparkles className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+                          <p className="text-sm text-slate-200 leading-relaxed">
+                            {msg.nonLegalResponse || msg.content}
+                          </p>
+                        </div>
+                        <p className="text-xs text-slate-400 pl-1">
+                          Nyay Mitra AI is ready to help if you ever face a legal problem with a landlord, employer, seller, bank, or government authority.
+                        </p>
+                      </div>
+                    )
+                  ) : msg.guidance ? (
+                    <div className="space-y-6 text-sm">
+                      {/* Section A: Understanding */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-gold-400 font-semibold text-xs tracking-wider uppercase">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>A. Understanding Your Problem</span>
+                        </div>
+                        <p className="text-slate-200 pl-6 leading-relaxed">
+                          {msg.guidance.understanding}
+                        </p>
+                      </div>
+
+                      {/* Section B: Legal Area */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-gold-400 font-semibold text-xs tracking-wider uppercase">
+                          <Gavel className="w-4 h-4" />
+                          <span>B. Legal Area / Domain</span>
+                        </div>
+                        <div className="pl-6">
+                          <span className="inline-block px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 font-medium text-xs">
+                            {msg.guidance.legalArea}
+                          </span>
+                        </div>
+                        {/* Jurisdiction Note */}
+                        {msg.guidance.jurisdictionNote && (
+                          <div className="pl-6 mt-2 p-3 rounded-xl bg-amber-950/30 border border-amber-700/40 text-xs text-amber-200 leading-relaxed">
+                            {msg.guidance.jurisdictionNote}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Section C: Possible Legal Rights */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-indigo-400 font-semibold text-xs tracking-wider uppercase">
+                          <Scale className="w-4 h-4" />
+                          <span>C. Your Potential Legal Rights</span>
+                        </div>
+                        {msg.guidance?.possibleRights?.length ? (
+                          <ul className="pl-6 space-y-2">
+                            {msg.guidance.possibleRights.map((right, rIdx) => (
+                              <li key={rIdx} className="flex items-start gap-2.5 text-slate-300">
+                                <span className="w-5 h-5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs flex items-center justify-center shrink-0 mt-0.5">
+                                  {rIdx + 1}
+                                </span>
+                                <span className="leading-relaxed">{right}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+
+                      {/* Section D: Relevant Law / Provision */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-gold-400 font-semibold text-xs tracking-wider uppercase">
+                          <BookMarked className="w-4 h-4" />
+                          <span>D. Relevant Indian Laws &amp; Provisions</span>
+                        </div>
+                        {msg.guidance?.relevantLaws?.length ? (
+                          <div className="pl-6 grid grid-cols-1 gap-2.5">
+                            {msg.guidance.relevantLaws.map((law, lIdx) => (
+                              <div
+                                key={lIdx}
+                                className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/80 space-y-1"
+                              >
+                                <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
+                                  <span className="font-bold text-slate-100">{law.act}</span>
+                                  <span className="font-mono px-2 py-0.5 rounded bg-slate-900 text-gold-300 text-[11px] border border-gold-500/20">
+                                    {law.provision}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-300 leading-relaxed">{law.details}</p>
+                                {law.sourceUrl && (
+                                  <a
+                                    href={law.sourceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] text-blue-400 hover:text-blue-300 underline"
+                                  >
+                                    Source ↗
+                                  </a>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* Section E: What You Should Do Next */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs tracking-wider uppercase">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>E. Practical Next Steps for You</span>
+                        </div>
+                        {msg.guidance?.nextSteps?.length ? (
+                          <ol className="pl-6 space-y-2">
+                            {msg.guidance.nextSteps.map((step, sIdx) => (
+                              <li key={sIdx} className="flex items-start gap-2.5 text-slate-300">
+                                <span className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                                  {sIdx + 1}
+                                </span>
+                                <span className="leading-relaxed">{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        ) : null}
+                      </div>
+
+                      {/* Section F: Documents/Evidence You May Need */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs tracking-wider uppercase">
+                          <FolderLock className="w-4 h-4" />
+                          <span>F. Evidence &amp; Documents to Gather</span>
+                        </div>
+                        {msg.guidance?.documentsEvidence?.length ? (
+                          <ul className="pl-6 space-y-1">
+                            {msg.guidance.documentsEvidence.map((doc, dIdx) => (
+                              <li key={dIdx} className="flex items-start gap-2 text-slate-300 text-xs sm:text-sm">
+                                <span className="text-blue-400">&bull;</span>
+                                <span>{doc}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+
+                      {/* Section G: When to Consider Professional Help */}
+                      {msg.guidance?.professionalHelp ? (
+                        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs space-y-1 text-slate-300">
+                          <div className="font-semibold text-slate-200 flex items-center gap-1.5 text-amber-300">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>G. When to Engage a Qualified Advocate:</span>
+                          </div>
+                          <p className="leading-relaxed text-slate-400">
+                            {msg.guidance.professionalHelp}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {/* Follow-up Questions Alert (if any) */}
+                      {msg.guidance.followupQuestions && msg.guidance.followupQuestions.length > 0 && (
+                        <div className="p-4 rounded-xl bg-blue-950/40 border border-blue-800/60 space-y-2">
+                          <div className="flex items-center gap-2 text-blue-300 font-semibold text-xs uppercase tracking-wide">
+                            <HelpCircle className="w-4 h-4 text-blue-400" />
+                            <span>Clarifying Questions for Greater Accuracy:</span>
+                          </div>
+                          <ul className="space-y-1.5 text-xs text-blue-200 pl-6">
+                            {msg.guidance.followupQuestions.map((fq, fIdx) => (
+                              <li key={fIdx} className="list-disc">
+                                {fq}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* BRIDGE TO LEGAL NOTICE GENERATION */}
+                      <div className="pt-2 border-t border-slate-800">
+                        <div className="p-4 rounded-xl bg-gradient-to-r from-navy-900 to-slate-900 border border-gold-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <span className="font-bold text-white text-sm flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-gold-400" />
+                              Ready to take formal action?
+                            </span>
+                            <p className="text-xs text-slate-400">
+                              Generate a legal demand notice template. You will need to fill in your personal details and verify the facts.
+                              {msg.isDemoMode && (
+                                <span className="ml-1 text-amber-400 font-medium">(Demo template — replace all sample fields with your actual information.)</span>
+                              )}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => bridgeToNotice(msg.noticePrefill)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-navy-950 font-bold text-xs sm:text-sm shadow-gold-glow shrink-0 transition-all"
+                          >
+                            <span>Generate Legal Notice</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-300 leading-relaxed">{msg.content}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
+
+        {/* Skeleton Loading Indicator */}
+        {loading && (
+          <div className="flex items-start gap-3">
+            <div className="w-7 h-7 rounded-lg bg-gold-500/20 border border-gold-500/40 flex items-center justify-center text-gold-400 shrink-0 mt-1">
+              <Scale className="w-4 h-4 animate-spin" />
+            </div>
+            <div className="w-full max-w-3xl p-5 sm:p-6 rounded-2xl rounded-tl-none bg-slate-900/90 border border-slate-800 shadow-elevated space-y-5">
+              <div className="h-4 bg-slate-800 rounded-md w-1/3 animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-3 bg-slate-800 rounded-md w-full animate-pulse"></div>
+                <div className="h-3 bg-slate-800 rounded-md w-5/6 animate-pulse"></div>
+              </div>
+              <div className="h-4 bg-slate-800 rounded-md w-1/4 animate-pulse pt-2"></div>
+              <div className="space-y-2">
+                <div className="h-3 bg-slate-800 rounded-md w-full animate-pulse"></div>
+                <div className="h-3 bg-slate-800 rounded-md w-4/5 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Section */}
+      <div className="mt-4 pt-3 border-t border-slate-800 space-y-3">
+        {/* Active Speech Recognition Banner */}
+        {isListening && (
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 animate-pulse">
+            <span className="flex items-center gap-2 font-medium">
+              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+              Listening to voice input in Indian English... Speak now.
+            </span>
+            <button
+              onClick={toggleListening}
+              className="font-bold underline hover:text-white"
+            >
+              Stop
+            </button>
+          </div>
+        )}
+
+        <div className="relative flex items-center gap-2">
+          {/* File Upload / Document Scanner Shortcut */}
+          <button
+            onClick={() => router.push("/documents")}
+            className="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors"
+            title="Scan Agreement / Upload Document"
+            aria-label="Upload document"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+
+          {/* Voice Mic Button (Web Speech API) */}
+          <button
+            onClick={toggleListening}
+            className={`p-3 rounded-xl border transition-all ${
+              isListening
+                ? "bg-rose-500 text-white border-rose-400 shadow-lg scale-105"
+                : "bg-slate-900 border-slate-800 text-slate-400 hover:text-gold-400 hover:border-gold-500/30"
+            }`}
+            title={speechSupported ? "Voice Input (Speak your legal problem)" : "Voice input not supported on this browser"}
+            aria-label="Toggle voice input"
+          >
+            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          </button>
+
+          {/* Textarea / Input */}
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            placeholder="Describe your legal issue (e.g., landlord not returning deposit, salary delay, defective item)..."
+            rows={1}
+            className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-gold-500/60 focus:ring-1 focus:ring-gold-500 text-sm text-slate-100 placeholder-slate-500 outline-none resize-none transition-all"
+          />
+
+          {/* Send Button */}
+          <button
+            onClick={() => handleSendMessage()}
+            disabled={!input.trim() || loading}
+            className="p-3 rounded-xl bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-navy-950 font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-gold-glow transition-all"
+            aria-label="Send message"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+          <span>Press Enter to send &bull; Shift + Enter for new line</span>
+          <span className="flex items-center gap-1">
+            <ShieldAlert className="w-3 h-3 text-amber-500" />
+            General info only &bull; Not a lawyer
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};

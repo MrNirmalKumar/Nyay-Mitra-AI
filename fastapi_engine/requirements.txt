@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+spacy
+pytesseract
+pdf2image
+python-multipart
+pydantic
+openai
+python-dotenv
