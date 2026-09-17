@@ -71,8 +71,29 @@ export const ChatInterface: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [checkedEvidence, setCheckedEvidence] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Load evidence state from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("nyay_mitra_evidence");
+      if (saved) {
+        try {
+          setCheckedEvidence(JSON.parse(saved));
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const toggleEvidence = (item: string) => {
+    const newState = { ...checkedEvidence, [item]: !checkedEvidence[item] };
+    setCheckedEvidence(newState);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nyay_mitra_evidence", JSON.stringify(newState));
+    }
+  };
 
   // Initialize Web Speech API for voice recognition if available
   useEffect(() => {
@@ -455,6 +476,69 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                     )
                   ) : msg.guidance ? (
                     <div className="space-y-6 text-sm">
+                      {/* --- PART 1: RISK SCORE GAUGE --- */}
+                      {msg.guidance.riskScore && (
+                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/50 border border-slate-800 shadow-inner space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <div className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">
+                                Legal Risk Assessment
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className={`text-2xl font-black ${
+                                  msg.guidance.riskScore.overallScore >= 75 ? "text-rose-500" :
+                                  msg.guidance.riskScore.overallScore >= 50 ? "text-orange-400" :
+                                  msg.guidance.riskScore.overallScore >= 25 ? "text-amber-400" :
+                                  "text-emerald-400"
+                                }`}>
+                                  {msg.guidance.riskScore.overallScore}/100
+                                </div>
+                                <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${
+                                  msg.guidance.riskScore.overallScore >= 75 ? "bg-rose-500/10 border-rose-500/30 text-rose-400" :
+                                  msg.guidance.riskScore.overallScore >= 50 ? "bg-orange-500/10 border-orange-500/30 text-orange-400" :
+                                  msg.guidance.riskScore.overallScore >= 25 ? "bg-amber-500/10 border-amber-500/30 text-amber-400" :
+                                  "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                                }`}>
+                                  {msg.guidance.riskScore.label}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Visual Meter */}
+                            <div className="w-full sm:w-48 h-2.5 bg-slate-800 rounded-full overflow-hidden flex">
+                              <div className="h-full bg-rose-500 transition-all" style={{ width: `${Math.max(0, msg.guidance.riskScore.overallScore)}%` }} />
+                            </div>
+                          </div>
+                          
+                          {/* Accordion: Why this score? */}
+                          <details className="group border border-slate-800/60 rounded-xl bg-slate-900/40">
+                            <summary className="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-slate-200 cursor-pointer flex justify-between items-center outline-none">
+                              <span>Why this score? (Factor Breakdown)</span>
+                              <span className="transition-transform group-open:rotate-180">▼</span>
+                            </summary>
+                            <div className="px-4 pb-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 space-y-3">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <div className="text-slate-500 font-medium">Urgency</div>
+                                  <div>{msg.guidance.riskScore.urgency}</div>
+                                </div>
+                                <div>
+                                  <div className="text-slate-500 font-medium">Severity</div>
+                                  <div>{msg.guidance.riskScore.severity}</div>
+                                </div>
+                                <div>
+                                  <div className="text-slate-500 font-medium">Evidence Strength</div>
+                                  <div>{msg.guidance.riskScore.evidenceStrength}</div>
+                                </div>
+                                <div>
+                                  <div className="text-slate-500 font-medium">Recurrence & Imbalance</div>
+                                  <div>{msg.guidance.riskScore.recurrence} | {msg.guidance.riskScore.powerImbalance}</div>
+                                </div>
+                              </div>
+                            </div>
+                          </details>
+                        </div>
+                      )}
                       {/* Section A: Understanding */}
                       <div className="space-y-1.5">
                         <div className="flex items-center gap-2 text-gold-400 font-semibold text-xs tracking-wider uppercase">
@@ -561,13 +645,92 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         ) : null}
                       </div>
 
-                      {/* Section F: Documents/Evidence You May Need */}
-                      <div className="space-y-2">
+                      {/* --- PART 2: AUTO EVIDENCE CHECKER --- */}
+                      <div className="space-y-3">
                         <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs tracking-wider uppercase">
                           <FolderLock className="w-4 h-4" />
                           <span>F. Evidence &amp; Documents to Gather</span>
                         </div>
-                        {msg.guidance?.documentsEvidence?.length ? (
+                        
+                        {msg.guidance?.evidenceChecklist && msg.guidance.evidenceChecklist.length > 0 ? (
+                          <div className="space-y-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                            {/* Progress Bar */}
+                            <div className="space-y-1.5">
+                              <div className="flex justify-between text-xs text-slate-400 font-medium">
+                                <span>Collection Progress</span>
+                                <span>
+                                  {msg.guidance.evidenceChecklist.filter(e => checkedEvidence[`${msg.id}-${e.item}`]).length} of {msg.guidance.evidenceChecklist.length} collected
+                                </span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 transition-all duration-500"
+                                  style={{ 
+                                    width: `${(msg.guidance.evidenceChecklist.filter(e => checkedEvidence[`${msg.id}-${e.item}`]).length / msg.guidance.evidenceChecklist.length) * 100}%` 
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Checklist */}
+                            <div className="space-y-2.5 pt-1">
+                              {msg.guidance.evidenceChecklist.map((ev, eIdx) => {
+                                const checkKey = `${msg.id}-${ev.item}`;
+                                const isChecked = !!checkedEvidence[checkKey];
+                                
+                                return (
+                                  <div 
+                                    key={eIdx} 
+                                    className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                                      isChecked 
+                                        ? "bg-blue-500/10 border-blue-500/30" 
+                                        : "bg-slate-950 border-slate-800 hover:border-slate-700"
+                                    }`}
+                                    onClick={() => toggleEvidence(checkKey)}
+                                  >
+                                    <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                                      isChecked 
+                                        ? "bg-blue-500 border-blue-500 text-white" 
+                                        : "border-slate-600"
+                                    }`}>
+                                      {isChecked && <Check className="w-2.5 h-2.5" />}
+                                    </div>
+                                    <div className="space-y-1 select-none w-full">
+                                      <div className={`text-sm font-semibold transition-colors ${isChecked ? "text-blue-300" : "text-slate-200"}`}>
+                                        {ev.item}
+                                      </div>
+                                      <div className="text-[11px] text-slate-400">
+                                        <span className="font-semibold text-slate-500">Why: </span>{ev.why}
+                                      </div>
+                                      <div className="text-[11px] text-slate-400">
+                                        <span className="font-semibold text-slate-500">How: </span>{ev.how}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            <button
+                              onClick={() => {
+                                const collected = msg.guidance!.evidenceChecklist!
+                                  .filter(e => checkedEvidence[`${msg.id}-${e.item}`])
+                                  .map(e => `- ${e.item}`)
+                                  .join("\\n");
+                                if(collected) {
+                                  navigator.clipboard.writeText("Evidence Collected:\\n" + collected);
+                                  alert("Evidence summary copied! Paste this into the Draft Notice context.");
+                                } else {
+                                  alert("Please check at least one item first.");
+                                }
+                              }}
+                              className="w-full mt-2 py-2 text-xs font-semibold rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-colors flex items-center justify-center gap-1.5"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              Generate Evidence Summary
+                            </button>
+                          </div>
+                        ) : msg.guidance?.documentsEvidence?.length ? (
                           <ul className="pl-6 space-y-1">
                             {msg.guidance.documentsEvidence.map((doc, dIdx) => (
                               <li key={dIdx} className="flex items-start gap-2 text-slate-300 text-xs sm:text-sm">
@@ -577,6 +740,45 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                             ))}
                           </ul>
                         ) : null}
+                      </div>
+
+                      {/* --- PART 3: SIMILAR CASES --- */}
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-center gap-2 text-purple-400 font-semibold text-xs tracking-wider uppercase">
+                          <BookMarked className="w-4 h-4" />
+                          <span>G. Similar Cases in Indian Context</span>
+                        </div>
+                        
+                        {msg.guidance?.similarCases && msg.guidance.similarCases.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {msg.guidance.similarCases.map((caseItem, cIdx) => (
+                              <div key={cIdx} className="p-4 bg-slate-900 border border-slate-700/60 rounded-xl flex flex-col gap-2 shadow-sm hover:border-slate-600 transition-colors">
+                                <div className="flex items-start justify-between gap-2">
+                                  <h4 className="font-semibold text-slate-200 text-sm leading-tight">{caseItem.title}</h4>
+                                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700/50">
+                                    {caseItem.id}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                                  {caseItem.description}
+                                </p>
+                                <div className="pt-2 mt-auto border-t border-slate-800/80">
+                                  <div className="text-[11px] font-medium text-emerald-400 mb-1">Resolution:</div>
+                                  <p className="text-xs text-slate-300 leading-relaxed">
+                                    {caseItem.resolution}
+                                  </p>
+                                </div>
+                                <div className="p-2 mt-2 bg-purple-500/10 border border-purple-500/20 rounded text-[11px] text-purple-300">
+                                  <span className="font-semibold text-purple-400">Match Reason:</span> {caseItem.matchReason}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-slate-900 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-xs text-center leading-relaxed">
+                            No closely matching precedent or past scenarios found for this specific query.<br/>Consult a local advocate for a bespoke legal strategy.
+                          </div>
+                        )}
                       </div>
 
                       {/* Section G: When to Consider Professional Help */}
@@ -649,7 +851,16 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
             <div className="w-7 h-7 rounded-lg bg-gold-500/20 border border-gold-500/40 flex items-center justify-center text-gold-400 shrink-0 mt-1">
               <Scale className="w-4 h-4 animate-spin" />
             </div>
-            <div className="w-full max-w-3xl p-5 sm:p-6 rounded-2xl rounded-tl-none bg-slate-900/90 border border-slate-800 shadow-elevated space-y-5">
+            <div className="w-full max-w-3xl p-5 sm:p-6 rounded-2xl rounded-tl-none bg-slate-900/90 border border-slate-800 shadow-elevated space-y-6">
+              {/* Fake Risk Score Gauge Loading */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
+                <div className="flex justify-between items-center">
+                  <div className="h-3 bg-slate-800 rounded-md w-32 animate-pulse"></div>
+                  <div className="h-6 bg-slate-800 rounded-md w-16 animate-pulse"></div>
+                </div>
+                <div className="w-full h-2.5 bg-slate-800 rounded-full animate-pulse"></div>
+              </div>
+              
               <div className="h-4 bg-slate-800 rounded-md w-1/3 animate-pulse"></div>
               <div className="space-y-2">
                 <div className="h-3 bg-slate-800 rounded-md w-full animate-pulse"></div>

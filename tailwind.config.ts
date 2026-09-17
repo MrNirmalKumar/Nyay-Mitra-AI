@@ -42,8 +42,8 @@ const config: Config = {
         'gold-glow': '0 0 20px -3px rgba(197, 160, 89, 0.35)',
       },
       fontFamily: {
-        sans: ['var(--font-outfit)', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-space-grotesk)', 'system-ui', 'sans-serif'],
       },
     },
   },

@@ -1,5 +1,29 @@
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
+export interface EvidenceItem {
+  item: string;
+  why: string;
+  how: string;
+}
+
+export interface RiskScore {
+  overallScore: number;
+  urgency: string;
+  severity: string;
+  evidenceStrength: string;
+  recurrence: string;
+  powerImbalance: string;
+  label: string;
+}
+
+export interface SimilarCase {
+  id: string;
+  title: string;
+  description: string;
+  resolution: string;
+  matchReason: string;
+}
+
 export interface StructuredLegalGuidance {
   understanding: string;
   legalArea: string;
@@ -13,6 +37,9 @@ export interface StructuredLegalGuidance {
   }[];
   nextSteps?: string[];
   documentsEvidence?: string[];
+  evidenceChecklist?: EvidenceItem[];
+  similarCases?: SimilarCase[];
+  riskScore?: RiskScore;
   professionalHelp?: string;
   followupQuestions?: string[];
 }

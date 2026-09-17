@@ -1,0 +1,107 @@
+[
+  {
+    "id": "SC-101",
+    "title": "Tenant Security Deposit Withholding",
+    "description": "Landlord withheld Rs. 50,000 security deposit citing 'repainting' despite no damage.",
+    "resolution": "Legal notice sent. Landlord refunded 90% of deposit within 14 days without going to court.",
+    "category": "Tenancy Law"
+  },
+  {
+    "id": "SC-102",
+    "title": "Unlawful Termination & Notice Pay",
+    "description": "Employee terminated without 1-month notice or severance pay.",
+    "resolution": "Filed complaint with Labour Commissioner. Company settled with 2 months pay out of court.",
+    "category": "Labour Law"
+  },
+  {
+    "id": "SC-103",
+    "title": "Defective Laptop & Warranty Denial",
+    "description": "E-commerce platform refused to replace a defective laptop worth Rs. 85,000.",
+    "resolution": "Consumer court notice drafted. E-commerce platform initiated full refund after 5 days.",
+    "category": "Consumer Law"
+  },
+  {
+    "id": "SC-104",
+    "title": "Unpaid Salary for 3 Months",
+    "description": "IT Company delayed salary for 3 months citing cash flow issues.",
+    "resolution": "Legal notice sent under Insolvency and Bankruptcy Code (IBC). Full dues cleared in 30 days.",
+    "category": "Labour Law"
+  },
+  {
+    "id": "SC-105",
+    "title": "Medical Negligence - Wrong Diagnosis",
+    "description": "Private hospital provided incorrect diagnosis leading to severe complications.",
+    "resolution": "Consumer dispute filed. Hospital ordered to pay Rs. 5 Lakhs compensation.",
+    "category": "Medical Negligence"
+  },
+  {
+    "id": "SC-106",
+    "title": "Flight Cancellation without Refund",
+    "description": "Airline cancelled flight last minute and refused cash refund, offering only credit.",
+    "resolution": "DGCA grievance filed and legal notice served. Full cash refund plus compensation issued.",
+    "category": "Consumer Law"
+  },
+  {
+    "id": "SC-107",
+    "title": "Builder Delaying Flat Possession",
+    "description": "Real estate developer delayed apartment handover by 2 years.",
+    "resolution": "RERA complaint filed. Builder ordered to pay 10% interest per annum for the delay period.",
+    "category": "Real Estate (RERA)"
+  },
+  {
+    "id": "SC-108",
+    "title": "Online Fraud - Bank Refusing Chargeback",
+    "description": "Credit card fraud of Rs. 40,000. Bank refused to reverse charge despite early reporting.",
+    "resolution": "Banking Ombudsman complaint filed. Bank forced to reverse the charge fully.",
+    "category": "Banking Law"
+  },
+  {
+    "id": "SC-109",
+    "title": "Insurance Claim Rejection (Pre-existing condition)",
+    "description": "Health insurance rejected claim for surgery citing undisclosed pre-existing condition incorrectly.",
+    "resolution": "IRDAI ombudsman approached. Insurance company ordered to honor the Rs. 2.5 Lakh claim.",
+    "category": "Insurance Law"
+  },
+  {
+    "id": "SC-110",
+    "title": "Eviction Notice without Reason",
+    "description": "Landlord sent 7-day eviction notice despite active 11-month rent agreement.",
+    "resolution": "Injunction filed in civil court. Landlord forced to honor the remaining agreement term.",
+    "category": "Tenancy Law"
+  },
+  {
+    "id": "SC-111",
+    "title": "Workplace Harassment (POSH)",
+    "description": "Female employee faced harassment. Internal Committee (IC) dismissed complaint without fair hearing.",
+    "resolution": "Appeal filed with Local Complaints Committee (LCC). Fresh investigation ordered.",
+    "category": "Labour Law (POSH)"
+  },
+  {
+    "id": "SC-112",
+    "title": "Defective Car Delivery",
+    "description": "New car delivered with manufacturing defect in engine.",
+    "resolution": "Consumer court ordered dealer and manufacturer to replace the vehicle.",
+    "category": "Consumer Law"
+  },
+  {
+    "id": "SC-113",
+    "title": "Unfair Loan Recovery Harassment",
+    "description": "Loan app agents harassed family members over unpaid EMIs.",
+    "resolution": "Cyber cell complaint filed. RBI grievance raised. Harassment stopped and restructuring agreed.",
+    "category": "Banking & Cyber Law"
+  },
+  {
+    "id": "SC-114",
+    "title": "Copyright Infringement of Artwork",
+    "description": "Local brand used artist's illustrations on merchandise without permission.",
+    "resolution": "Cease and desist notice sent. Brand agreed to pay licensing fee and back-royalties.",
+    "category": "Intellectual Property"
+  },
+  {
+    "id": "SC-115",
+    "title": "Breach of Freelance Contract",
+    "description": "Client refused to pay final milestone (Rs. 60,000) for software development.",
+    "resolution": "Legal notice for breach of contract sent. Client paid 80% as a swift settlement.",
+    "category": "Contract Law"
+  }
+]

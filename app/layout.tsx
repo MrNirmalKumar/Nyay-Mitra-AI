@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Outfit, Playfair_Display } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: '--font-playfair' });
+const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: '--font-space-grotesk' });
 
 export const metadata: Metadata = {
   title: "Nyay Mitra AI - Understand Your Rights. Take the Right Step.",
@@ -45,7 +45,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.variable} ${playfair.variable} font-sans bg-white dark:bg-navy-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col selection:bg-gold-500 selection:text-navy-950`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans bg-white dark:bg-navy-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col selection:bg-gold-500 selection:text-navy-950`}>
         <ThemeProvider>
           <Navbar />
           <main className="flex-1 w-full flex flex-col">{children}</main>
