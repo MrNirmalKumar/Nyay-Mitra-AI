@@ -7,6 +7,10 @@ import io
 import os
 import json
 import traceback
+import random
+import time
+import datetime
+import uuid
 from openai import OpenAI
 from dotenv import load_dotenv
 from typing import List, Optional
@@ -27,6 +31,106 @@ app.add_middleware(
 class ChatMessage(BaseModel):
     role: str
     content: str
+
+
+
+# --- In-Memory Auth Stores ---
+OTP_STORE = {} # { phone: { "otp": str, "expires_at": float, "attempts": int } }
+SESSION_STORE = {} # { session_token: phone }
+OTP_RATE_LIMIT = {} # { phone: [timestamps...] }
+
+def check_rate_limit(phone: str) -> bool:
+    now = time.time()
+    # clean up old timestamps (older than 10 mins)
+    if phone in OTP_RATE_LIMIT:
+        OTP_RATE_LIMIT[phone] = [t for t in OTP_RATE_LIMIT[phone] if now - t < 600]
+    else:
+        OTP_RATE_LIMIT[phone] = []
+    
+    if len(OTP_RATE_LIMIT[phone]) >= 3:
+        return False
+    
+    OTP_RATE_LIMIT[phone].append(now)
+    return True
+
+class SendOtpRequest(BaseModel):
+    phone_number: str
+
+class VerifyOtpRequest(BaseModel):
+    phone_number: str
+    otp: str
+
+@app.post("/api/auth/send-otp")
+async def send_otp(req: SendOtpRequest):
+    phone = req.phone_number
+    if len(phone) != 10 or not phone.isdigit():
+        raise HTTPException(status_code=400, detail="Invalid phone number format.")
+    
+    if not check_rate_limit(phone):
+        raise HTTPException(status_code=429, detail="Too many attempts, please try again in a few minutes.")
+
+    otp = str(random.randint(100000, 999999))
+    OTP_STORE[phone] = {
+        "otp": otp,
+        "expires_at": time.time() + 300, # 5 mins
+        "attempts": 0
+    }
+    
+    demo_mode = os.getenv("DEMO_MODE", "false").lower() == "true"
+    
+    # In production, call SMS gateway here.
+    
+    response_data = {"success": True, "message": "OTP sent successfully."}
+    if demo_mode:
+        response_data["demo_otp"] = otp
+        
+    return response_data
+
+@app.post("/api/auth/verify-otp")
+async def verify_otp(req: VerifyOtpRequest):
+    phone = req.phone_number
+    otp = req.otp
+    
+    if phone not in OTP_STORE:
+        raise HTTPException(status_code=400, detail="No OTP requested for this number.")
+        
+    store_data = OTP_STORE[phone]
+    if time.time() > store_data["expires_at"]:
+        del OTP_STORE[phone]
+        raise HTTPException(status_code=400, detail="OTP expired. Please request a new one.")
+        
+    store_data["attempts"] += 1
+    if store_data["attempts"] > 3:
+        del OTP_STORE[phone]
+        raise HTTPException(status_code=400, detail="Too many invalid attempts. Please request a new OTP.")
+        
+    if store_data["otp"] != otp:
+        raise HTTPException(status_code=400, detail="Incorrect OTP.")
+        
+    # Success
+    del OTP_STORE[phone]
+    session_token = str(uuid.uuid4())
+    SESSION_STORE[session_token] = phone
+    
+    return {
+        "success": True,
+        "session_token": session_token,
+        "phone_number": phone
+    }
+
+@app.get("/api/auth/me")
+async def get_current_user(token: str = None):
+    if not token or token not in SESSION_STORE:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return {"phone_number": SESSION_STORE[token]}
+
+class BookingRequest(BaseModel):
+    session_token: Optional[str] = None
+    advocate_name: str
+    full_name: str
+    phone_number: str
+    time_slot: str
+    issue_description: Optional[str] = ""
 
 class TextRequest(BaseModel):
     text: str
@@ -254,3 +358,70 @@ Here is the database of previous similar cases to match against (find up to 2, i
         traceback.print_exc()
         print("=============================")
         raise HTTPException(status_code=500, detail={"error": "Inference failed", "message": str(e)})
+
+
+@app.post("/api/bookings")
+async def create_booking(booking: BookingRequest):
+    """Demo endpoint for booking an advocate consultation."""
+    try:
+        # Validate phone
+        if len(booking.phone_number) != 10 or not booking.phone_number.isdigit():
+            raise HTTPException(status_code=400, detail="Invalid phone number format. Must be 10 digits.")
+
+        # Save to local JSON file
+        bookings_file = "bookings.json"
+        bookings_data = []
+        if os.path.exists(bookings_file):
+            try:
+                with open(bookings_file, "r") as f:
+                    bookings_data = json.load(f)
+            except:
+                pass
+        
+        new_booking = booking.dict()
+        new_booking["id"] = str(uuid.uuid4())
+        new_booking["created_at"] = datetime.datetime.now().isoformat()
+        new_booking["status"] = "Pending"
+        
+        # Link to authenticated user if session_token provided
+        if booking.session_token and booking.session_token in SESSION_STORE:
+            new_booking["user_phone"] = SESSION_STORE[booking.session_token]
+
+        bookings_data.append(new_booking)
+
+        with open(bookings_file, "w") as f:
+            json.dump(bookings_data, f, indent=2)
+
+        return {
+            "success": True,
+            "message": "Booking requested successfully",
+            "booking": new_booking
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print("Booking Error:", str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Internal server error while processing booking.")
+
+
+@app.get("/api/bookings")
+async def get_bookings(token: str = None):
+    if not token or token not in SESSION_STORE:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    user_phone = SESSION_STORE[token]
+    bookings_file = "bookings.json"
+    if not os.path.exists(bookings_file):
+        return {"bookings": []}
+        
+    try:
+        with open(bookings_file, "r") as f:
+            all_bookings = json.load(f)
+        
+        user_bookings = [b for b in all_bookings if b.get("user_phone") == user_phone]
+        # Sort by latest
+        user_bookings.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return {"bookings": user_bookings}
+    except Exception as e:
+        return {"bookings": []}

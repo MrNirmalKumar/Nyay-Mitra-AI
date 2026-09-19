@@ -43,6 +43,7 @@ export const NoticeForm: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [isDemoLoaded, setIsDemoLoaded] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState<{date: string, description: string}[]>([]);
 
   // Check if there is prefill data from the AI chat consultation.
   // If /notices is opened directly (no prefill), start with a blank form — do NOT auto-load demo data.
@@ -68,6 +69,14 @@ export const NoticeForm: React.FC = () => {
     setFormData(scenario.noticePrefill);
     setIsDemoLoaded(true);
     generateDraft(scenario.noticePrefill);
+  };
+
+  const addTimelineEvent = () => setTimelineEvents([...timelineEvents, { date: "", description: "" }]);
+  const removeTimelineEvent = (idx: number) => setTimelineEvents(timelineEvents.filter((_, i) => i !== idx));
+  const updateTimelineEvent = (idx: number, field: "date" | "description", value: string) => {
+    const updated = [...timelineEvents];
+    updated[idx][field] = value;
+    setTimelineEvents(updated);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -211,34 +220,34 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gold-500/15 border border-gold-500/30 text-gold-400">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gold-500/15 border border-gold-500/30 text-amber-600">
               Statutory Drafting Tool
             </span>
-            <span className="text-xs text-slate-400 flex items-center gap-1">
+            <span className="text-xs text-slate-500 flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               Advocate Format
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F] mt-1">
             Professional Legal Notice Generator
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
             Draft an authoritative, legally grounded demand notice formatted in accordance with Indian procedural practice. Review, customize, copy, and download as PDF.
           </p>
         </div>
 
         {/* Demo Preset Buttons */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <span className="text-xs text-slate-400 font-medium">Load Demo Template:</span>
+          <span className="text-xs text-slate-500 font-medium">Load Demo Template:</span>
           <div className="flex flex-wrap gap-1.5">
             {DEMO_SCENARIOS.map((scenario) => (
               <button
                 key={scenario.id}
                 onClick={() => loadScenario(scenario)}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 border border-slate-800 hover:border-gold-500/40 text-slate-300 hover:text-gold-300 transition-all"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-200 hover:border-gold-500/40 text-slate-600 hover:text-amber-600 transition-all"
               >
                 [Demo] {scenario.category.split(" ")[0]}
               </button>
@@ -251,15 +260,15 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Form Inputs (7 Cols) */}
         <div className="lg:col-span-6 space-y-6">
-          <div className="p-5 sm:p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-subtle space-y-5">
-            <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <FileText className="w-4 h-4 text-gold-400" />
+          <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-subtle space-y-5">
+            <h2 className="text-base font-bold text-[#1E3A5F] flex items-center gap-2 border-b border-slate-200 pb-3">
+              <FileText className="w-4 h-4 text-amber-600" />
               <span>1. Notice & Dispute Details</span>
             </h2>
 
             {/* Demo Data Warning */}
             {isDemoLoaded && (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-950/30 border border-amber-700/40 text-xs text-amber-200">
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
                 <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <span>
                   <strong>Demo Data loaded.</strong> All fields are illustrative sample content. Replace every field with your actual details before sending this notice. Do not send this notice with placeholder values.
@@ -269,7 +278,7 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
 
             {/* Notice Category */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                 Notice Type / Purpose *
               </label>
               <input
@@ -278,151 +287,151 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
                 value={formData.noticeType}
                 onChange={handleInputChange}
                 placeholder="e.g. Demand for Refund of Security Deposit, Unpaid Salary Arrears"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 focus:border-gold-500 text-sm text-white outline-none"
+                className="w-full px-3.5 py-2 rounded-xl bg-[#F8F6F0] border border-slate-200 focus:border-gold-500 text-sm text-slate-800 outline-none"
               />
             </div>
 
             {/* Sender Details */}
-            <div className="space-y-3 pt-2 border-t border-slate-800/80">
-              <span className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
+            <div className="space-y-3 pt-2 border-t border-slate-200">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" /> Sender (Your Details)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Full Legal Name *</label>
+                  <label className="block text-xs text-slate-500 mb-1">Full Legal Name *</label>
                   <input
                     type="text"
                     name="senderName"
                     value={formData.senderName}
                     onChange={handleInputChange}
                     placeholder="Your Full Name"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Phone Number</label>
+                  <label className="block text-xs text-slate-500 mb-1">Phone Number</label>
                   <input
                     type="text"
                     name="senderPhone"
                     value={formData.senderPhone}
                     onChange={handleInputChange}
                     placeholder="+91 98765 43210"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Email Address</label>
+                  <label className="block text-xs text-slate-500 mb-1">Email Address</label>
                   <input
                     type="email"
                     name="senderEmail"
                     value={formData.senderEmail}
                     onChange={handleInputChange}
                     placeholder="yourname@example.com"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Postal Address *</label>
+                  <label className="block text-xs text-slate-500 mb-1">Postal Address *</label>
                   <input
                     type="text"
                     name="senderAddress"
                     value={formData.senderAddress}
                     onChange={handleInputChange}
                     placeholder="House/Flat No, Street, City, State, PIN"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Recipient Details */}
-            <div className="space-y-3 pt-2 border-t border-slate-800/80">
-              <span className="text-xs font-bold uppercase tracking-wider text-gold-400 flex items-center gap-1.5">
+            <div className="space-y-3 pt-2 border-t border-slate-200">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1.5">
                 <Building className="w-3.5 h-3.5" /> Recipient (Opposite Party Details)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Recipient / Officer Name *</label>
+                  <label className="block text-xs text-slate-500 mb-1">Recipient / Officer Name *</label>
                   <input
                     type="text"
                     name="recipientName"
                     value={formData.recipientName}
                     onChange={handleInputChange}
                     placeholder="Opposite Party / Landlord / MD"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Company / Entity (If Any)</label>
+                  <label className="block text-xs text-slate-500 mb-1">Company / Entity (If Any)</label>
                   <input
                     type="text"
                     name="recipientCompany"
                     value={formData.recipientCompany || ""}
                     onChange={handleInputChange}
                     placeholder="Company or Organization Name"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Official Address *</label>
+                <label className="block text-xs text-slate-500 mb-1">Official Address *</label>
                 <input
                   type="text"
                   name="recipientAddress"
                   value={formData.recipientAddress}
                   onChange={handleInputChange}
                   placeholder="Premises address or Registered Corporate Office"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                 />
               </div>
               {/* Jurisdiction / State */}
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Jurisdiction / State <span className="text-amber-400">(Important for tenancy &amp; labour law)</span></label>
+                <label className="block text-xs text-slate-500 mb-1">Jurisdiction / State <span className="text-amber-400">(Important for tenancy &amp; labour law)</span></label>
                 <input
                   type="text"
                   name="jurisdiction"
                   value={formData.jurisdiction || ""}
                   onChange={handleInputChange}
                   placeholder="e.g. Karnataka, Maharashtra, Delhi NCT"
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                  className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                 />
               </div>
             </div>
 
             {/* Financials & Dates */}
-            <div className="space-y-3 pt-2 border-t border-slate-800/80">
+            <div className="space-y-3 pt-2 border-t border-slate-200">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Transaction / Move-out Date</label>
+                  <label className="block text-xs text-slate-500 mb-1">Transaction / Move-out Date</label>
                   <input
                     type="text"
                     name="transactionDate"
                     value={formData.transactionDate}
                     onChange={handleInputChange}
                     placeholder="e.g. 1st March 2024"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Amount Involved (INR)</label>
+                  <label className="block text-xs text-slate-500 mb-1">Amount Involved (INR)</label>
                   <input
                     type="text"
                     name="amountInvolved"
                     value={formData.amountInvolved}
                     onChange={handleInputChange}
                     placeholder="₹ 1,20,000/-"
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1">Compliance Days</label>
+                  <label className="block text-xs text-slate-500 mb-1">Compliance Days</label>
                   <select
                     name="deadlineDays"
                     value={formData.deadlineDays}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm text-white outline-none"
+                    className="w-full px-3 py-2 rounded-lg bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none"
                   >
                     <option value={7}>7 Days (Urgent)</option>
                     <option value={15}>15 Days (Standard Statutory)</option>
@@ -433,9 +442,9 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
             </div>
 
             {/* Narrative Facts */}
-            <div className="space-y-3 pt-2 border-t border-slate-800/80">
+            <div className="space-y-3 pt-2 border-t border-slate-200">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Statement of Disputed Facts *
                 </label>
                 <textarea
@@ -444,12 +453,12 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
                   value={formData.disputeDescription}
                   onChange={handleInputChange}
                   placeholder="State the facts chronologically..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white outline-none resize-y"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none resize-y"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Statutory / Legal Basis *
                 </label>
                 <textarea
@@ -458,12 +467,12 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
                   value={formData.legalBasis}
                   onChange={handleInputChange}
                   placeholder="e.g. Model Tenancy Act 2021 Section 13; Indian Contract Act 1872 Section 73..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white outline-none resize-y"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none resize-y"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Specific Relief / Demand *
                 </label>
                 <textarea
@@ -472,7 +481,7 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
                   value={formData.reliefRequested}
                   onChange={handleInputChange}
                   placeholder="e.g. Full refund of ₹1,20,000 with 12% interest per annum..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white outline-none resize-y"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F0] border border-slate-200 text-sm text-slate-800 outline-none resize-y"
                 />
               </div>
             </div>
@@ -482,7 +491,7 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
               <button
                 onClick={() => generateDraft()}
                 disabled={generating}
-                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-gold-400 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-100 border border-slate-200 text-amber-600 font-semibold text-sm flex items-center justify-center gap-2 transition-all"
               >
                 <RefreshCw className={`w-4 h-4 ${generating ? "animate-spin" : ""}`} />
                 <span>Update / Regenerate Legal Notice Draft</span>
@@ -493,10 +502,10 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
 
         {/* Right Column: Live Legal Notice Preview & Actions (6 Cols) */}
         <div className="lg:col-span-6 space-y-4 sticky top-24">
-          <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-3">
+          <div className="p-4 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <span className="text-xs font-bold text-[#1E3A5F] uppercase tracking-wider">
                 Live Legal Notice Preview
               </span>
             </div>
@@ -505,14 +514,14 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsEditingDraft(!isEditingDraft)}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 border border-slate-700 transition-colors"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-200 bg-slate-100 border border-slate-200 transition-colors"
               >
                 {isEditingDraft ? "Done Editing" : "Edit In-Place"}
               </button>
 
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? "Copied" : "Copy"}</span>
@@ -520,7 +529,7 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
 
               <button
                 onClick={handlePrint}
-                className="p-1.5 rounded-lg text-slate-300 hover:text-white bg-slate-800 border border-slate-700 transition-colors"
+                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors"
                 title="Print Notice"
               >
                 <Printer className="w-4 h-4" />
@@ -562,8 +571,8 @@ Nyay Mitra AI — General legal drafting assistance. Not a substitute for qualif
             )}
           </div>
 
-          <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-            <AlertCircle className="w-3 h-3 text-gold-400" />
+          <p className="text-[11px] text-slate-500 text-center flex items-center justify-center gap-1">
+            <AlertCircle className="w-3 h-3 text-amber-600" />
             <span>
               Tip: Serve notice via India Post Speed Post with Acknowledgment Due (A.D.) and registered email.
             </span>

@@ -1,153 +1,270 @@
-"use client";
+﻿"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Scale, MessageSquareText, FileText, BookOpen, FileSearch, Info, Menu, X, Sparkles, ShieldCheck } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Scale, MessageSquareText, FileText, BookOpen,
+  FileSearch, Info, Menu, X, Users,
+} from "lucide-react";
+import { useLang } from "@/lib/LangContext";
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { lang, setLang, t } = useLang();
 
   const navItems = [
-    { label: "Home", href: "/", icon: Scale },
-    { label: "AI Consultation", href: "/chat", icon: MessageSquareText },
-    { label: "Draft Notice", href: "/notices", icon: FileText },
-    { label: "Citizen Rights", href: "/rights", icon: BookOpen },
-    { label: "Analyze Document", href: "/documents", icon: FileSearch },
-    { label: "About", href: "/about", icon: Info },
+    { key: "nav.home", href: "/", icon: Scale },
+    { key: "nav.chat", href: "/chat", icon: MessageSquareText },
+    { key: "nav.notices", href: "/notices", icon: FileText },
+    { key: "nav.rights", href: "/rights", icon: BookOpen },
+    { key: "nav.documents", href: "/documents", icon: FileSearch },
+    { key: "nav.about", href: "/about", icon: Info },
   ];
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/90 dark:bg-navy-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <Scale className="w-5 h-5 text-white font-bold" />
+    <header
+      className="sticky top-0 z-50 w-full transition-shadow duration-200"
+      style={{
+        backgroundColor: "#FFFFFF",
+        borderBottom: "1px solid #E5E3DD",
+        boxShadow: scrolled ? "0 2px 12px rgba(0,0,0,0.06)" : "none",
+      }}
+    >
+      {/* Top micro-strip */}
+      <div
+        style={{
+          backgroundColor: "#1E3A5F",
+          color: "#CBD5E1",
+          fontSize: "0.6875rem",
+          textAlign: "center",
+          padding: "0.25rem 1rem",
+          letterSpacing: "0.04em",
+          fontWeight: 500,
+        }}
+      >
+        Free AI-powered legal guidance for Indian citizens &nbsp;·&nbsp; No account required &nbsp;·&nbsp; Statute-verified answers
+      </div>
+
+      {/* Main nav row */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 1.5rem" }}>
+        <div className="flex items-center justify-between" style={{ height: 60 }}>
+
+          {/* Brand */}
+          <Link href="/" className="flex items-center gap-3 group" style={{ textDecoration: "none" }}>
+            <div
+              className="flex items-center justify-center rounded-lg group-hover:opacity-90 transition-opacity"
+              style={{ width: 38, height: 38, background: "#1E3A5F" }}
+            >
+              <Scale className="w-5 h-5" style={{ color: "#B8935F" }} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-lg text-slate-800 dark:text-white tracking-tight group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                  Nyay Mitra <span className="text-teal-500 dark:text-teal-400">AI</span>
-                </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-slate-100 dark:bg-slate-800 text-teal-600 dark:text-teal-400 border border-teal-500/20">
-                  India
+              <div className="flex items-baseline gap-2">
+                <span
+                  style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: "1.125rem",
+                    fontWeight: 700,
+                    color: "#1E3A5F",
+                    letterSpacing: "-0.01em",
+                    lineHeight: 1,
+                  }}
+                >
+                  Nyay Mitra <span style={{ color: "#B8935F" }}>AI</span>
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block tracking-wide">
-                Understand Your Rights. Take the Right Step.
+              <p style={{ fontSize: "0.6rem", color: "#9CA3AF", letterSpacing: "0.05em", textTransform: "uppercase", marginTop: 1, fontWeight: 500 }}>
+                Legal Intelligence for India
               </p>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+          {/* Desktop nav links */}
+          <nav className="hidden lg:flex items-center" style={{ gap: "0.125rem" }}>
             {navItems.map((item) => {
-              const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
-                <Link
-                  key={item.href}
+                <Link prefetch={true} key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all ${
-                    isActive
-                      ? "text-teal-700 dark:text-teal-400 border-b-2 border-teal-600 rounded-none"
-                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.375rem",
+                    padding: "0.5rem 0.875rem",
+                    fontSize: "0.8125rem",
+                    fontWeight: isActive ? 700 : 500,
+                    color: isActive ? "#1E3A5F" : "#4B5563",
+                    borderBottom: isActive ? "2px solid #B8935F" : "2px solid transparent",
+                    textDecoration: "none",
+                    transition: "color 0.15s, border-color 0.15s",
+                    whiteSpace: "nowrap",
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "#1E3A5F";
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) (e.currentTarget as HTMLAnchorElement).style.color = "#4B5563";
+                  }}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400"}`} />
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Right Action & Demo Badge */}
-          <div className="hidden lg:flex items-center gap-4">
-            
-            {/* Language Toggle */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
-              <button className="px-2.5 py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">EN</button>
-              <button className="px-2.5 py-1 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">HI</button>
+          {/* Right side: language toggle + CTA */}
+          <div className="hidden lg:flex items-center" style={{ gap: "0.75rem" }}>
+            {/* Language toggle — wired to LangContext */}
+            <div
+              className="flex items-center rounded-md overflow-hidden"
+              style={{ border: "1px solid #E5E3DD", fontSize: "0.75rem" }}
+            >
+              <button
+                onClick={() => setLang("en")}
+                style={{
+                  padding: "0.25rem 0.625rem",
+                  background: lang === "en" ? "#1E3A5F" : "transparent",
+                  color: lang === "en" ? "#fff" : "#6B7280",
+                  fontWeight: 700, border: "none", cursor: "pointer",
+                  transition: "background 0.15s",
+                }}
+              >
+                EN
+              </button>
+              <button
+                onClick={() => setLang("hi")}
+                style={{
+                  padding: "0.25rem 0.625rem",
+                  background: lang === "hi" ? "#1E3A5F" : "transparent",
+                  color: lang === "hi" ? "#fff" : "#6B7280",
+                  fontWeight: 700, border: "none", cursor: "pointer",
+                  transition: "background 0.15s",
+                }}
+              >
+                हिं
+              </button>
             </div>
 
-            {/* Theme Toggle */}
-            <ThemeToggle />
-
-            {/* Talk to an Advocate Button */}
+            {/* Talk to Advocate */}
             <Link
               href="/advisors"
-              className="px-4 py-2 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-navy-950 font-semibold text-sm hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+              className="flex items-center gap-1.5"
+              style={{
+                padding: "0.5rem 1rem",
+                background: "#1E3A5F",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "0.8125rem",
+                borderRadius: "0.5rem",
+                textDecoration: "none",
+                transition: "background 0.15s",
+                whiteSpace: "nowrap",
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "#152d4a"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "#1E3A5F"}
+            >
+              <Users className="w-3.5 h-3.5" />
+              {t("nav.advocate")}
+            </Link>
+          </div>
+
+          {/* Mobile hamburger */}
+          <div className="lg:hidden flex items-center gap-2">
+            <Link
+              href="/chat"
+              style={{
+                padding: "0.4rem 0.875rem",
+                background: "#1E3A5F",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "0.75rem",
+                borderRadius: "0.5rem",
+                textDecoration: "none",
+              }}
+            >
+              Chat
+            </Link>
+            <button
+              onClick={() => setMobileOpen(p => !p)}
+              aria-label="Toggle menu"
+              style={{
+                padding: "0.4rem",
+                borderRadius: "0.5rem",
+                color: "#4B5563",
+                background: "transparent",
+                border: "1px solid #E5E3DD",
+                cursor: "pointer",
+              }}
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden"
+          style={{ borderTop: "1px solid #E5E3DD", background: "#fff", padding: "0.75rem 1.5rem 1rem" }}
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link prefetch={true} key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  padding: "0.625rem 0.75rem",
+                  borderRadius: "0.5rem",
+                  color: isActive ? "#1E3A5F" : "#4B5563",
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: "0.9375rem",
+                  textDecoration: "none",
+                  background: isActive ? "#EEF2F7" : "transparent",
+                  borderLeft: isActive ? "3px solid #B8935F" : "3px solid transparent",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                <Icon className="w-4 h-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+          <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: "1px solid #E5E3DD" }}>
+            <Link
+              href="/advisors"
+              onClick={() => setMobileOpen(false)}
+              style={{
+                display: "block",
+                padding: "0.625rem 1rem",
+                background: "#1E3A5F",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "0.875rem",
+                borderRadius: "0.5rem",
+                textAlign: "center",
+                textDecoration: "none",
+              }}
             >
               Talk to an Advocate
             </Link>
           </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
-            <Link
-              href="/chat"
-              className="px-2.5 py-1.5 rounded-lg bg-teal-600 text-white font-semibold text-xs flex items-center gap-1"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Chat</span>
-            </Link>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
         </div>
-
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-slate-200 dark:border-slate-800 space-y-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-base font-medium ${
-                    isActive
-                      ? "bg-slate-100 dark:bg-slate-800 text-teal-700 dark:text-teal-400 border-l-4 border-teal-600"
-                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400"}`} />
-                  {item.label}
-                </Link>
-              );
-            })}
-            <div className="pt-3 pb-2 px-4 flex flex-col gap-3 border-t border-slate-200/80 dark:border-slate-800/80">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Language / भाषा</span>
-                <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-800">
-                  <button className="px-3 py-1 text-xs font-bold rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">EN</button>
-                  <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">HI</button>
-                </div>
-              </div>
-              <Link
-                href="/advisors"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-2.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-navy-950 font-semibold text-sm text-center"
-              >
-                Talk to an Advocate
-              </Link>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </header>
   );
 };
+

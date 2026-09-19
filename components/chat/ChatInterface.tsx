@@ -71,6 +71,7 @@ export const ChatInterface: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [checkedEvidence, setCheckedEvidence] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -293,13 +294,13 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 w-full flex flex-col flex-1">
       {/* Top Header & Clear Button */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1E3A5F] flex items-center gap-2.5">
             <Scale className="w-6 h-6 text-gold-400" />
             <span>AI Legal Consultation</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-500">
             Explain your legal problem in plain language. Nyay Mitra identifies rights, laws, and next steps.
           </p>
         </div>
@@ -308,7 +309,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
           {messages.length > 0 && (
             <button
               onClick={clearChat}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 bg-slate-900 border border-slate-800 hover:border-rose-500/30 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-rose-400 bg-white border border-slate-200 hover:border-rose-500/30 transition-all"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Clear Consultation</span>
@@ -327,22 +328,22 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
         {messages.length === 0 ? (
           /* Empty State / Welcome Guide */
           <div className="py-6 sm:py-10 text-center space-y-6">
-            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-gold-500/30 flex items-center justify-center mx-auto text-gold-400 shadow-gold-glow">
+            <div className="w-16 h-16 rounded-2xl bg-white border border-gold-500/30 flex items-center justify-center mx-auto text-gold-400 shadow-gold-glow">
               <Gavel className="w-8 h-8" />
             </div>
 
             <div className="max-w-lg mx-auto space-y-2">
-              <h2 className="text-lg sm:text-xl font-bold text-white">
+              <h2 className="text-lg sm:text-xl font-bold text-[#1E3A5F]">
                 How Can Nyay Mitra Help You Today?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
                 Describe any dispute with your landlord, employer, online seller, bank, or consumer provider. Speak or type in simple words.
               </p>
             </div>
 
             {/* Suggested Hackathon Scenarios */}
             <div className="max-w-2xl mx-auto text-left space-y-3 pt-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-gold-400" />
                 <span>Try an example legal issue (Judge Demo Scenarios):</span>
               </p>
@@ -351,12 +352,12 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(q.text)}
-                    className="p-3 text-left rounded-xl bg-slate-900/90 border border-slate-800 hover:border-gold-500/40 hover:bg-slate-800/80 transition-all group shadow-sm"
+                    className="p-3 text-left rounded-xl bg-white border border-slate-200 hover:border-amber-500/40 hover:bg-slate-50 transition-all group shadow-sm"
                   >
                     <span className="text-xs font-semibold text-gold-400 group-hover:text-gold-300 block mb-1">
                       {q.label}
                     </span>
-                    <span className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                    <span className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                       &ldquo;{q.text}&rdquo;
                     </span>
                   </button>
@@ -373,18 +374,18 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
             >
               {/* User Bubble */}
               {msg.role === "user" ? (
-                <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-none p-4 bg-navy-700/80 border border-navy-500/30 text-white shadow-subtle">
+                <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tr-none p-4 bg-white border border-slate-200 text-slate-800 shadow-sm">
                   <div className="flex items-center justify-between gap-4 mb-1">
                     <span className="text-[11px] font-semibold text-gold-300">You (Citizen)</span>
-                    <span className="text-[10px] text-slate-400">{msg.timestamp}</span>
+                    <span className="text-[10px] text-slate-500">{msg.timestamp}</span>
                   </div>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
               ) : (
                 /* Assistant Structured Legal Guidance */
-                <div className="w-full max-w-3xl rounded-2xl rounded-tl-none p-5 sm:p-6 bg-slate-900/90 border border-slate-800 text-slate-200 shadow-elevated space-y-6">
+                <div className="w-full max-w-3xl rounded-2xl rounded-tl-none p-5 sm:p-6 bg-white border border-slate-200 text-slate-700 shadow-elevated space-y-6">
                   {/* Header with Badges */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
                     <div className="flex items-center gap-2">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
                         msg.intent === "ambiguous"
@@ -402,7 +403,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         )}
                       </div>
                       <div>
-                        <span className="font-bold text-sm text-white">
+                        <span className="font-bold text-sm text-slate-800">
                           {msg.intent === "ambiguous"
                             ? "Clarification Needed"
                             : msg.isLegalIssue === false
@@ -421,7 +422,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                       {msg.guidance && (
                         <button
                           onClick={() => copyAdvice(msg)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded text-xs text-slate-500 hover:text-rose-800 bg-slate-200 hover:bg-slate-100 transition-colors"
                           title="Copy structured guidance"
                         >
                           {copiedId === msg.id ? (
@@ -451,25 +452,25 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                             <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
                               Context Required Before Legal Analysis
                             </span>
-                            <p className="text-sm text-slate-100 leading-relaxed font-medium">
+                            <p className="text-sm text-slate-800 leading-relaxed font-medium">
                               {msg.clarificationQuestion || msg.content}
                             </p>
                           </div>
                         </div>
-                        <p className="text-xs text-slate-400 pl-1">
+                        <p className="text-xs text-slate-500 pl-1">
                           Please reply with these details so Nyay Mitra AI can identify the specific Indian statute (e.g. Tenancy, Labour, or Consumer Protection) and practical next steps.
                         </p>
                       </div>
                     ) : (
                       /* Clear non-legal message: natural friendly response */
                       <div className="flex flex-col gap-3">
-                        <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/60 border border-slate-700">
+                        <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-200/60 border border-slate-300">
                           <Sparkles className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
-                          <p className="text-sm text-slate-200 leading-relaxed">
+                          <p className="text-sm text-slate-700 leading-relaxed">
                             {msg.nonLegalResponse || msg.content}
                           </p>
                         </div>
-                        <p className="text-xs text-slate-400 pl-1">
+                        <p className="text-xs text-slate-500 pl-1">
                           Nyay Mitra AI is ready to help if you ever face a legal problem with a landlord, employer, seller, bank, or government authority.
                         </p>
                       </div>
@@ -478,7 +479,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                     <div className="space-y-6 text-sm">
                       {/* --- PART 1: RISK SCORE GAUGE --- */}
                       {msg.guidance.riskScore && (
-                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/50 border border-slate-800 shadow-inner space-y-4">
+                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner space-y-4">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div>
                               <div className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">
@@ -505,18 +506,18 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                             </div>
                             
                             {/* Visual Meter */}
-                            <div className="w-full sm:w-48 h-2.5 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div className="w-full sm:w-48 h-2.5 bg-slate-200 rounded-full overflow-hidden flex">
                               <div className="h-full bg-rose-500 transition-all" style={{ width: `${Math.max(0, msg.guidance.riskScore.overallScore)}%` }} />
                             </div>
                           </div>
                           
                           {/* Accordion: Why this score? */}
-                          <details className="group border border-slate-800/60 rounded-xl bg-slate-900/40">
-                            <summary className="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-slate-200 cursor-pointer flex justify-between items-center outline-none">
+                          <details className="group border border-slate-200 rounded-xl bg-slate-50">
+                            <summary className="px-4 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-700 cursor-pointer flex justify-between items-center outline-none">
                               <span>Why this score? (Factor Breakdown)</span>
                               <span className="transition-transform group-open:rotate-180">▼</span>
                             </summary>
-                            <div className="px-4 pb-4 pt-1 border-t border-slate-800/60 text-xs text-slate-300 space-y-3">
+                            <div className="px-4 pb-4 pt-1 border-t border-slate-200/60 text-xs text-slate-600 space-y-3">
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                   <div className="text-slate-500 font-medium">Urgency</div>
@@ -545,7 +546,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                           <CheckCircle2 className="w-4 h-4" />
                           <span>A. Understanding Your Problem</span>
                         </div>
-                        <p className="text-slate-200 pl-6 leading-relaxed">
+                        <p className="text-slate-700 pl-6 leading-relaxed">
                           {msg.guidance.understanding}
                         </p>
                       </div>
@@ -557,7 +558,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                           <span>B. Legal Area / Domain</span>
                         </div>
                         <div className="pl-6">
-                          <span className="inline-block px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 font-medium text-xs">
+                          <span className="inline-block px-3 py-1 rounded-lg bg-slate-200 border border-slate-300 text-slate-800 font-medium text-xs">
                             {msg.guidance.legalArea}
                           </span>
                         </div>
@@ -578,7 +579,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         {msg.guidance?.possibleRights?.length ? (
                           <ul className="pl-6 space-y-2">
                             {msg.guidance.possibleRights.map((right, rIdx) => (
-                              <li key={rIdx} className="flex items-start gap-2.5 text-slate-300">
+                              <li key={rIdx} className="flex items-start gap-2.5 text-slate-600">
                                 <span className="w-5 h-5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs flex items-center justify-center shrink-0 mt-0.5">
                                   {rIdx + 1}
                                 </span>
@@ -600,15 +601,15 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                             {msg.guidance.relevantLaws.map((law, lIdx) => (
                               <div
                                 key={lIdx}
-                                className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/80 space-y-1"
+                                className="p-3 rounded-xl bg-slate-200/60 border border-slate-300/80 space-y-1"
                               >
                                 <div className="flex items-center justify-between text-xs gap-2 flex-wrap">
-                                  <span className="font-bold text-slate-100">{law.act}</span>
-                                  <span className="font-mono px-2 py-0.5 rounded bg-slate-900 text-gold-300 text-[11px] border border-gold-500/20">
+                                  <span className="font-bold text-slate-800">{law.act}</span>
+                                  <span className="font-mono px-2 py-0.5 rounded bg-white text-gold-300 text-[11px] border border-gold-500/20">
                                     {law.provision}
                                   </span>
                                 </div>
-                                <p className="text-xs text-slate-300 leading-relaxed">{law.details}</p>
+                                <p className="text-xs text-slate-600 leading-relaxed">{law.details}</p>
                                 {law.sourceUrl && (
                                   <a
                                     href={law.sourceUrl}
@@ -634,7 +635,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         {msg.guidance?.nextSteps?.length ? (
                           <ol className="pl-6 space-y-2">
                             {msg.guidance.nextSteps.map((step, sIdx) => (
-                              <li key={sIdx} className="flex items-start gap-2.5 text-slate-300">
+                              <li key={sIdx} className="flex items-start gap-2.5 text-slate-600">
                                 <span className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">
                                   {sIdx + 1}
                                 </span>
@@ -653,16 +654,16 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         </div>
                         
                         {msg.guidance?.evidenceChecklist && msg.guidance.evidenceChecklist.length > 0 ? (
-                          <div className="space-y-4 bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                          <div className="space-y-4 bg-white/60 p-4 rounded-xl border border-slate-200">
                             {/* Progress Bar */}
                             <div className="space-y-1.5">
-                              <div className="flex justify-between text-xs text-slate-400 font-medium">
+                              <div className="flex justify-between text-xs text-slate-500 font-medium">
                                 <span>Collection Progress</span>
                                 <span>
                                   {msg.guidance.evidenceChecklist.filter(e => checkedEvidence[`${msg.id}-${e.item}`]).length} of {msg.guidance.evidenceChecklist.length} collected
                                 </span>
                               </div>
-                              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                 <div 
                                   className="h-full bg-blue-500 transition-all duration-500"
                                   style={{ 
@@ -684,25 +685,25 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                                     className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
                                       isChecked 
                                         ? "bg-blue-500/10 border-blue-500/30" 
-                                        : "bg-slate-950 border-slate-800 hover:border-slate-700"
+                                        : "bg-slate-950 border-slate-200 hover:border-slate-300"
                                     }`}
                                     onClick={() => toggleEvidence(checkKey)}
                                   >
                                     <div className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
                                       isChecked 
-                                        ? "bg-blue-500 border-blue-500 text-white" 
+                                        ? "bg-blue-500 border-blue-500 text-slate-800" 
                                         : "border-slate-600"
                                     }`}>
                                       {isChecked && <Check className="w-2.5 h-2.5" />}
                                     </div>
                                     <div className="space-y-1 select-none w-full">
-                                      <div className={`text-sm font-semibold transition-colors ${isChecked ? "text-blue-300" : "text-slate-200"}`}>
+                                      <div className={`text-sm font-semibold transition-colors ${isChecked ? "text-blue-300" : "text-slate-700"}`}>
                                         {ev.item}
                                       </div>
-                                      <div className="text-[11px] text-slate-400">
+                                      <div className="text-[11px] text-slate-500">
                                         <span className="font-semibold text-slate-500">Why: </span>{ev.why}
                                       </div>
-                                      <div className="text-[11px] text-slate-400">
+                                      <div className="text-[11px] text-slate-500">
                                         <span className="font-semibold text-slate-500">How: </span>{ev.how}
                                       </div>
                                     </div>
@@ -733,7 +734,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         ) : msg.guidance?.documentsEvidence?.length ? (
                           <ul className="pl-6 space-y-1">
                             {msg.guidance.documentsEvidence.map((doc, dIdx) => (
-                              <li key={dIdx} className="flex items-start gap-2 text-slate-300 text-xs sm:text-sm">
+                              <li key={dIdx} className="flex items-start gap-2 text-slate-600 text-xs sm:text-sm">
                                 <span className="text-blue-400">&bull;</span>
                                 <span>{doc}</span>
                               </li>
@@ -752,19 +753,19 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                         {msg.guidance?.similarCases && msg.guidance.similarCases.length > 0 ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {msg.guidance.similarCases.map((caseItem, cIdx) => (
-                              <div key={cIdx} className="p-4 bg-slate-900 border border-slate-700/60 rounded-xl flex flex-col gap-2 shadow-sm hover:border-slate-600 transition-colors">
+                              <div key={cIdx} className="p-4 bg-white border border-slate-300/60 rounded-xl flex flex-col gap-2 shadow-sm hover:border-slate-600 transition-colors">
                                 <div className="flex items-start justify-between gap-2">
-                                  <h4 className="font-semibold text-slate-200 text-sm leading-tight">{caseItem.title}</h4>
-                                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700/50">
+                                  <h4 className="font-semibold text-slate-700 text-sm leading-tight">{caseItem.title}</h4>
+                                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-500 border border-slate-300/50">
                                     {caseItem.id}
                                   </span>
                                 </div>
-                                <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+                                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
                                   {caseItem.description}
                                 </p>
-                                <div className="pt-2 mt-auto border-t border-slate-800/80">
+                                <div className="pt-2 mt-auto border-t border-slate-200/80">
                                   <div className="text-[11px] font-medium text-emerald-400 mb-1">Resolution:</div>
-                                  <p className="text-xs text-slate-300 leading-relaxed">
+                                  <p className="text-xs text-slate-600 leading-relaxed">
                                     {caseItem.resolution}
                                   </p>
                                 </div>
@@ -775,7 +776,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                             ))}
                           </div>
                         ) : (
-                          <div className="p-4 bg-slate-900 border border-slate-800 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-xs text-center leading-relaxed">
+                          <div className="p-4 bg-slate-50 border border-slate-200 border-dashed rounded-xl flex items-center justify-center text-slate-500 text-xs text-center leading-relaxed">
                             No closely matching precedent or past scenarios found for this specific query.<br/>Consult a local advocate for a bespoke legal strategy.
                           </div>
                         )}
@@ -783,12 +784,12 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
 
                       {/* Section G: When to Consider Professional Help */}
                       {msg.guidance?.professionalHelp ? (
-                        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs space-y-1 text-slate-300">
-                          <div className="font-semibold text-slate-200 flex items-center gap-1.5 text-amber-300">
+                        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1 text-slate-600">
+                          <div className="font-semibold text-slate-700 flex items-center gap-1.5 text-amber-300">
                             <AlertCircle className="w-4 h-4" />
                             <span>G. When to Engage a Qualified Advocate:</span>
                           </div>
-                          <p className="leading-relaxed text-slate-400">
+                          <p className="leading-relaxed text-slate-500">
                             {msg.guidance.professionalHelp}
                           </p>
                         </div>
@@ -812,14 +813,14 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                       )}
 
                       {/* BRIDGE TO LEGAL NOTICE GENERATION */}
-                      <div className="pt-2 border-t border-slate-800">
-                        <div className="p-4 rounded-xl bg-gradient-to-r from-navy-900 to-slate-900 border border-gold-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="pt-2 border-t border-slate-200">
+                        <div className="p-4 rounded-xl bg-[#1E3A5F] border border-amber-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                           <div className="space-y-1">
                             <span className="font-bold text-white text-sm flex items-center gap-2">
                               <FileText className="w-4 h-4 text-gold-400" />
                               Ready to take formal action?
                             </span>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-slate-500">
                               Generate a legal demand notice template. You will need to fill in your personal details and verify the facts.
                               {msg.isDemoMode && (
                                 <span className="ml-1 text-amber-400 font-medium">(Demo template — replace all sample fields with your actual information.)</span>
@@ -837,7 +838,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-300 leading-relaxed">{msg.content}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{msg.content}</p>
                   )}
                 </div>
               )}
@@ -851,25 +852,25 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
             <div className="w-7 h-7 rounded-lg bg-gold-500/20 border border-gold-500/40 flex items-center justify-center text-gold-400 shrink-0 mt-1">
               <Scale className="w-4 h-4 animate-spin" />
             </div>
-            <div className="w-full max-w-3xl p-5 sm:p-6 rounded-2xl rounded-tl-none bg-slate-900/90 border border-slate-800 shadow-elevated space-y-6">
+            <div className="w-full max-w-3xl p-5 sm:p-6 rounded-2xl rounded-tl-none bg-white border border-slate-200 shadow-elevated space-y-6">
               {/* Fake Risk Score Gauge Loading */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/50 border border-slate-800 space-y-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
                 <div className="flex justify-between items-center">
-                  <div className="h-3 bg-slate-800 rounded-md w-32 animate-pulse"></div>
-                  <div className="h-6 bg-slate-800 rounded-md w-16 animate-pulse"></div>
+                  <div className="h-3 bg-slate-200 rounded-md w-32 animate-pulse"></div>
+                  <div className="h-6 bg-slate-200 rounded-md w-16 animate-pulse"></div>
                 </div>
-                <div className="w-full h-2.5 bg-slate-800 rounded-full animate-pulse"></div>
+                <div className="w-full h-2.5 bg-slate-200 rounded-full animate-pulse"></div>
               </div>
               
-              <div className="h-4 bg-slate-800 rounded-md w-1/3 animate-pulse"></div>
+              <div className="h-4 bg-slate-200 rounded-md w-1/3 animate-pulse"></div>
               <div className="space-y-2">
-                <div className="h-3 bg-slate-800 rounded-md w-full animate-pulse"></div>
-                <div className="h-3 bg-slate-800 rounded-md w-5/6 animate-pulse"></div>
+                <div className="h-3 bg-slate-200 rounded-md w-full animate-pulse"></div>
+                <div className="h-3 bg-slate-200 rounded-md w-5/6 animate-pulse"></div>
               </div>
-              <div className="h-4 bg-slate-800 rounded-md w-1/4 animate-pulse pt-2"></div>
+              <div className="h-4 bg-slate-200 rounded-md w-1/4 animate-pulse pt-2"></div>
               <div className="space-y-2">
-                <div className="h-3 bg-slate-800 rounded-md w-full animate-pulse"></div>
-                <div className="h-3 bg-slate-800 rounded-md w-4/5 animate-pulse"></div>
+                <div className="h-3 bg-slate-200 rounded-md w-full animate-pulse"></div>
+                <div className="h-3 bg-slate-200 rounded-md w-4/5 animate-pulse"></div>
               </div>
             </div>
           </div>
@@ -879,17 +880,17 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
       </div>
 
       {/* Input Section */}
-      <div className="mt-4 pt-3 border-t border-slate-800 space-y-3">
+      <div className="mt-4 pt-3 border-t border-slate-200 space-y-3">
         {/* Active Speech Recognition Banner */}
         {isListening && (
-          <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 animate-pulse">
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-600 animate-pulse">
             <span className="flex items-center gap-2 font-medium">
               <span className="w-2 h-2 rounded-full bg-rose-500"></span>
               Listening to voice input in Indian English... Speak now.
             </span>
             <button
               onClick={toggleListening}
-              className="font-bold underline hover:text-white"
+              className="font-bold underline hover:text-rose-800"
             >
               Stop
             </button>
@@ -900,7 +901,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
           {/* File Upload / Document Scanner Shortcut */}
           <button
             onClick={() => router.push("/documents")}
-            className="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-rose-800 transition-colors"
             title="Scan Agreement / Upload Document"
             aria-label="Upload document"
           >
@@ -912,8 +913,8 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
             onClick={toggleListening}
             className={`p-3 rounded-xl border transition-all ${
               isListening
-                ? "bg-rose-500 text-white border-rose-400 shadow-lg scale-105"
-                : "bg-slate-900 border-slate-800 text-slate-400 hover:text-gold-400 hover:border-gold-500/30"
+                ? "bg-rose-500 text-slate-800 border-rose-400 shadow-lg scale-105"
+                : "bg-white border-slate-200 text-slate-500 hover:text-amber-600 hover:border-gold-500/30"
             }`}
             title={speechSupported ? "Voice Input (Speak your legal problem)" : "Voice input not supported on this browser"}
             aria-label="Toggle voice input"
@@ -933,7 +934,7 @@ Disclaimer: General information only. Not substitute for a qualified lawyer.`;
             }}
             placeholder="Describe your legal issue (e.g., landlord not returning deposit, salary delay, defective item)..."
             rows={1}
-            className="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 focus:border-gold-500/60 focus:ring-1 focus:ring-gold-500 text-sm text-slate-100 placeholder-slate-500 outline-none resize-none transition-all"
+            className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-gold-500/60 focus:ring-1 focus:ring-gold-500 text-sm text-slate-800 placeholder-slate-500 outline-none resize-none transition-all"
           />
 
           {/* Send Button */}

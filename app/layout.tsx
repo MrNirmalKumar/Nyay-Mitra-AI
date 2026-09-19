@@ -1,15 +1,30 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { LangProvider } from "@/lib/LangContext";
+import { Suspense } from "react";
+import { PageLoader } from "@/components/ui/PageLoader";
+import { AuthProvider } from "@/lib/AuthContext";
+import AuthModal from "@/components/auth/AuthModal";
 
-const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: '--font-space-grotesk' });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: '--font-playfair',
+  display: 'swap',
+  weight: ['400', '600', '700', '900'],
+  style: ['normal', 'italic'],
+});
 
 export const metadata: Metadata = {
-  title: "Nyay Mitra AI - Understand Your Rights. Take the Right Step.",
+  title: "Nyay Mitra AI — Understand Your Rights. Take the Right Step.",
   description:
     "AI-powered legal assistance designed for Indian citizens. Understand your rights in simple language, get actionable guidance, analyze legal documents, and generate professional legal demand notices.",
   keywords: [
@@ -36,21 +51,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Anti-flash script: runs before paint to apply saved theme */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('nyay-theme');if(t==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark')}}catch(e){}})();`,
-          }}
-        />
+        {/* Preconnect for Google Fonts */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans bg-white dark:bg-navy-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col selection:bg-gold-500 selection:text-navy-950`}>
-        <ThemeProvider>
+      <body
+        className={`${inter.variable} ${playfair.variable}`}
+        style={{
+          fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
+          backgroundColor: "#F7F6F2",
+          color: "#1A1A1A",
+        }}
+      >
+        <AuthProvider>
+          <LangProvider>
+          <Suspense fallback={null}>
+            <PageLoader />
+          </Suspense>
           <Navbar />
           <main className="flex-1 w-full flex flex-col">{children}</main>
           <Footer />
-        </ThemeProvider>
+        </LangProvider>
+          <AuthModal />
+        </AuthProvider>
       </body>
     </html>
   );

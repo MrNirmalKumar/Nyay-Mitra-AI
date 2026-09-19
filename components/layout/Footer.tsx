@@ -1,156 +1,150 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { Scale, ExternalLink, Heart, ShieldCheck } from "lucide-react";
 import { LegalDisclaimer } from "../ui/LegalDisclaimer";
 
+const navy = "#1E3A5F";
+const gold = "#B8935F";
+const muted = "#6B7280";
+const border = "#E5E3DD";
+
+const colHead: React.CSSProperties = {
+  fontSize: "0.6875rem",
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "#1A1A1A",
+  marginBottom: "0.875rem",
+};
+
+const linkStyle: React.CSSProperties = {
+  fontSize: "0.875rem",
+  color: muted,
+  textDecoration: "none",
+  display: "block",
+  marginBottom: "0.5rem",
+  transition: "color 0.15s",
+};
+
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full bg-slate-100 dark:bg-navy-950 text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800/80 mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Top Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-          
-          {/* Brand Info */}
+    <footer
+      style={{
+        background: "#FFFFFF",
+        borderTop: `1px solid ${border}`,
+        marginTop: "auto",
+      }}
+    >
+      {/* Top brand strip */}
+      <div style={{ background: navy, color: "#fff", padding: "2.5rem 0" }}>
+        <div
+          style={{ maxWidth: 1280, margin: "0 auto", padding: "0 2rem" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+        >
+          {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gold-500 to-amber-600 flex items-center justify-center text-navy-950">
-                <Scale className="w-4 h-4 font-bold" />
+              <div
+                style={{
+                  width: 34, height: 34, borderRadius: "0.5rem",
+                  background: gold, display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Scale className="w-4 h-4" style={{ color: navy }} />
               </div>
-              <span className="font-bold text-lg text-slate-800 dark:text-white">
-                Nyay Mitra <span className="text-gold-500 dark:text-gold-400">AI</span>
+              <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.125rem", fontWeight: 700, color: "#fff" }}>
+                Nyay Mitra <span style={{ color: gold }}>AI</span>
               </span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              AI-powered legal guidance for every Indian citizen. Understand your legal rights in plain language, take the right step, and draft professional notices with confidence.
+            <p style={{ fontSize: "0.8125rem", color: "#94A3B8", lineHeight: 1.65 }}>
+              AI-powered legal guidance for every Indian citizen. Understand your rights, take the right step, and draft professional notices with confidence.
             </p>
-            <div className="flex items-center gap-2 text-xs text-gold-400/90 font-medium">
-              <ShieldCheck className="w-4 h-4 text-gold-400" />
-              <span>Ethical AI &bull; No Hallucinated Laws &bull; Citizen-First</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.75rem", color: gold }}>
+              <ShieldCheck style={{ width: 14, height: 14 }} />
+              Ethical AI · No Hallucinated Laws · Citizen-First
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="space-y-3">
-            <h3 className="text-slate-800 dark:text-white text-sm font-semibold tracking-wider uppercase">Platform</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/chat" className="hover:text-gold-300 transition-colors">
-                  AI Legal Consultation
-                </Link>
-              </li>
-              <li>
-                <Link href="/notices" className="hover:text-gold-300 transition-colors">
-                  Legal Notice Generator
-                </Link>
-              </li>
-              <li>
-                <Link href="/rights" className="hover:text-gold-300 transition-colors">
-                  Indian Citizen Rights Guide
-                </Link>
-              </li>
-              <li>
-                <Link href="/documents" className="hover:text-gold-300 transition-colors">
-                  Document Clause Scanner
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="hover:text-gold-300 transition-colors">
-                  Mission & Responsible AI
-                </Link>
-              </li>
-            </ul>
+          {/* Platform links */}
+          <div>
+            <div style={colHead}>Platform</div>
+            {[
+              { href: "/chat", label: "AI Legal Consultation" },
+              { href: "/notices", label: "Legal Notice Generator" },
+              { href: "/rights", label: "Citizen Rights Guide" },
+              { href: "/documents", label: "Document Clause Scanner" },
+              { href: "/advisors", label: "Find an Advocate" },
+              { href: "/about", label: "Mission & Responsible AI" },
+            ].map(l => (
+              <Link key={l.href} href={l.href} style={{ ...linkStyle, color: "#94A3B8" }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = gold}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#94A3B8"}
+              >
+                {l.label}
+              </Link>
+            ))}
           </div>
 
-          {/* Emergency Statutory Helplines */}
-          <div className="space-y-3">
-            <h3 className="text-slate-800 dark:text-white text-sm font-semibold tracking-wider uppercase">Official Helplines</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center justify-between">
-                <span>National Consumer Helpline</span>
-                <span className="font-mono text-emerald-400 font-semibold">1915</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span>Cyber Crime Financial Fraud</span>
-                <span className="font-mono text-blue-400 font-semibold">1930</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span>Free Legal Aid (NALSA)</span>
-                <span className="font-mono text-gold-400 font-semibold">15100</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span>Women Helpline (National)</span>
-                <span className="font-mono text-purple-400 font-semibold">1091</span>
-              </li>
-              <li className="flex items-center justify-between">
-                <span>Emergency Police / Rescue</span>
-                <span className="font-mono text-rose-400 font-semibold">112</span>
-              </li>
-            </ul>
+          {/* Helplines */}
+          <div>
+            <div style={{ ...colHead, color: "#CBD5E1" }}>Official Helplines</div>
+            {[
+              { label: "National Consumer Helpline", number: "1915", color: "#34D399" },
+              { label: "Cyber Crime Financial Fraud", number: "1930", color: "#60A5FA" },
+              { label: "Free Legal Aid (NALSA)", number: "15100", color: gold },
+              { label: "Women Helpline", number: "1091", color: "#C084FC" },
+              { label: "Emergency Police / Rescue", number: "112", color: "#F87171" },
+            ].map(h => (
+              <div key={h.number} style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "0.8125rem", color: "#94A3B8" }}>{h.label}</span>
+                <span style={{ fontSize: "0.8125rem", fontWeight: 700, fontFamily: "monospace", color: h.color }}>{h.number}</span>
+              </div>
+            ))}
           </div>
 
-          {/* Official Indian Portals */}
-          <div className="space-y-3">
-            <h3 className="text-slate-800 dark:text-white text-sm font-semibold tracking-wider uppercase">Government Portals</h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href="https://www.indiacode.nic.in"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 hover:text-gold-300 transition-colors"
-                >
-                  <span>India Code (National Acts)</span>
-                  <ExternalLink className="w-3 h-3 text-slate-500" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://edaakhil.nic.in"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 hover:text-gold-300 transition-colors"
-                >
-                  <span>e-Daakhil (Consumer Filing)</span>
-                  <ExternalLink className="w-3 h-3 text-slate-500" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://cybercrime.gov.in"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 hover:text-gold-300 transition-colors"
-                >
-                  <span>National Cyber Crime Portal</span>
-                  <ExternalLink className="w-3 h-3 text-slate-500" />
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://nalsa.gov.in"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 hover:text-gold-300 transition-colors"
-                >
-                  <span>NALSA (National Legal Services)</span>
-                  <ExternalLink className="w-3 h-3 text-slate-500" />
-                </a>
-              </li>
-            </ul>
+          {/* Government portals */}
+          <div>
+            <div style={{ ...colHead, color: "#CBD5E1" }}>Government Portals</div>
+            {[
+              { href: "https://www.indiacode.nic.in", label: "India Code (National Acts)" },
+              { href: "https://edaakhil.nic.in", label: "e-Daakhil (Consumer Filing)" },
+              { href: "https://cybercrime.gov.in", label: "National Cyber Crime Portal" },
+              { href: "https://nalsa.gov.in", label: "NALSA (Legal Services)" },
+            ].map(l => (
+              <a
+                key={l.href}
+                href={l.href}
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: 4, ...linkStyle, color: "#94A3B8", marginBottom: "0.625rem" }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = gold}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "#94A3B8"}
+              >
+                {l.label} <ExternalLink style={{ width: 12, height: 12, opacity: 0.6 }} />
+              </a>
+            ))}
           </div>
-
         </div>
+      </div>
 
-        {/* Global Legal Disclaimer */}
-        <div className="mb-8">
-          <LegalDisclaimer />
-        </div>
+      {/* Legal Disclaimer */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "1.25rem 2rem" }}>
+        <LegalDisclaimer />
+      </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-6 border-t border-slate-200 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400 dark:text-slate-500">
-          <p>&copy; {new Date().getFullYear()} Nyay Mitra AI &bull; Built with civic responsibility for Indian Citizens.</p>
-          <p className="flex items-center gap-1">
-            Engineered with <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> for accessible justice.
+      {/* Bottom bar */}
+      <div style={{ borderTop: `1px solid ${border}`, background: "#FAFAF8" }}>
+        <div
+          style={{ maxWidth: 1280, margin: "0 auto", padding: "0.875rem 2rem" }}
+          className="flex flex-col sm:flex-row items-center justify-between gap-2"
+        >
+          <p style={{ fontSize: "0.75rem", color: muted }}>
+            © {new Date().getFullYear()} Nyay Mitra AI · Built with civic responsibility for Indian citizens.
+          </p>
+          <p style={{ fontSize: "0.75rem", color: muted, display: "flex", alignItems: "center", gap: 4 }}>
+            Engineered with <Heart style={{ width: 13, height: 13, color: "#EF4444", fill: "#EF4444" }} /> for accessible justice.
           </p>
         </div>
       </div>

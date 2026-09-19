@@ -18,6 +18,7 @@ export interface PDFNoticeData {
   reliefRequested: string;
   deadlineDays: number;
   fullDraftText?: string;
+  timelineEvents?: {date: string, description: string}[];
 }
 
 /**
@@ -181,12 +182,25 @@ export function generateLegalNoticePDF(data: PDFNoticeData, filename = "Legal_De
   };
 
   addSection("1. BACKGROUND FACTS & GRIEVANCE:", data.disputeDescription);
-  addSection("2. STATUTORY BASIS & APPLICABLE LAWS:", data.legalBasis);
-  addSection("3. SPECIFIC RELIEF / ACTION SOUGHT:", data.reliefRequested);
-  addSection(
-    "4. MANDATORY COMPLIANCE TIMELINE:",
-    `You are requested to address and satisfy the demands set forth above within ${data.deadlineDays} days of receipt of this notice, failing which the Sender reserves the full legal right to initiate appropriate civil or consumer legal proceedings before the competent court or forum having jurisdiction, entirely at your risk and legal consequences.`
-  );
+  
+  if (data.timelineEvents && data.timelineEvents.length > 0) {
+    const timelineStr = data.timelineEvents.map((e, i) => `${i + 1}. ${e.date}: ${e.description}`).join("\n");
+    addSection("2. CHRONOLOGICAL TIMELINE OF EVENTS:", timelineStr);
+    addSection("3. STATUTORY BASIS & APPLICABLE LAWS:", data.legalBasis);
+    addSection("4. SPECIFIC RELIEF / ACTION SOUGHT:", data.reliefRequested);
+    addSection(
+      "5. MANDATORY COMPLIANCE TIMELINE:",
+      `You are requested to address and satisfy the demands set forth above within ${data.deadlineDays} days of receipt of this notice, failing which the Sender reserves the full legal right to initiate appropriate civil or consumer legal proceedings before the competent court or forum having jurisdiction, entirely at your risk and legal consequences.`
+    );
+  } else {
+    addSection("2. STATUTORY BASIS & APPLICABLE LAWS:", data.legalBasis);
+    addSection("3. SPECIFIC RELIEF / ACTION SOUGHT:", data.reliefRequested);
+    addSection(
+      "4. MANDATORY COMPLIANCE TIMELINE:",
+      `You are requested to address and satisfy the demands set forth above within ${data.deadlineDays} days of receipt of this notice, failing which the Sender reserves the full legal right to initiate appropriate civil or consumer legal proceedings before the competent court or forum having jurisdiction, entirely at your risk and legal consequences.`
+    );
+  }
+
 
   // Signoff Block
   checkNewPage(30);

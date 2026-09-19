@@ -16,6 +16,8 @@ export interface AnalyzedDocumentResult {
   }[];
   aiSummary: string;
   questionsIssuesDetected: string[];
+  riskScore: number;
+  respondByDays: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -62,7 +64,9 @@ Return a JSON response matching:
     }
   ],
   "aiSummary": "Plain language 3-sentence summary of the document for an Indian citizen",
-  "questionsIssuesDetected": ["Issues or ambiguities found"]
+  "questionsIssuesDetected": ["Issues or ambiguities found"],
+  "riskScore": 85,
+  "respondByDays": 14
 }`;
 
         const completion = await openai.chat.completions.create({
@@ -156,7 +160,9 @@ async function analyzeDocumentWithML(fileName: string, fileType: string, text: s
     financialTerms: [],
     flaggedClauses: flaggedClauses,
     aiSummary: aiSummary,
-    questionsIssuesDetected: ["Ensure document is stamped properly."]
+    questionsIssuesDetected: ["Ensure document is stamped properly."],
+    riskScore: 75,
+    respondByDays: 15
   };
 }
 

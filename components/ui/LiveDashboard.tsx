@@ -52,18 +52,18 @@ export function LiveDashboard() {
   };
 
   return (
-    <div className="relative bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 backdrop-blur-md overflow-hidden flex flex-col h-full max-h-[500px]">
+    <div className="relative bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 backdrop-blur-md overflow-hidden flex flex-col h-full max-h-[500px]">
       {/* Decorative gradient */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500"></div>
       
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-800/80 mb-4">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
         <div className="flex items-center gap-2">
           <div className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
           </div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">Live Platform Activity</h3>
+          <h3 className="text-sm font-bold text-[#1E3A5F] uppercase tracking-wider">Live Platform Activity</h3>
         </div>
         <Activity className="w-4 h-4 text-slate-500" />
       </div>
@@ -78,7 +78,7 @@ export function LiveDashboard() {
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
-              className="flex gap-3 p-3 rounded-xl bg-slate-950/50 border border-slate-800/50 hover:bg-slate-800/40 transition-colors"
+              className="flex gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/50 hover:bg-slate-100/40 transition-colors"
             >
               <div className="mt-1 shrink-0">
                 {activity.type === 'advocate' ? (
@@ -92,12 +92,12 @@ export function LiveDashboard() {
                 )}
               </div>
               <div className="flex-1 space-y-1">
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   {/* Highlight the name and topic */}
                   {activity.message.split(activity.topic).map((part, i, arr) => (
                     <React.Fragment key={i}>
                       {part}
-                      {i < arr.length - 1 && <span className="text-white font-semibold">{activity.topic}</span>}
+                      {i < arr.length - 1 && <span className="text-[#1E3A5F] font-semibold bg-blue-50 px-0.5 rounded">{activity.topic}</span>}
                     </React.Fragment>
                   ))}
                 </p>
@@ -105,7 +105,7 @@ export function LiveDashboard() {
                   <span className="text-[10px] text-slate-500 font-medium">
                     {formatTimeAgo(activity.timestamp)}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/50">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200/50">
                     {activity.type === 'advocate' ? 'Human Verified' : 'AI Analysis'}
                   </span>
                 </div>
